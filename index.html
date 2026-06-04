@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Agents — Evan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0b0e;--s1:#111318;--border:#2c3040;
+  --text:#f0f2f8;--muted:#7a8099;
+  --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:300;}
+.shell{max-width:700px;margin:0 auto;padding:3rem 1.5rem;}
+.title{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.sub{font-size:13px;color:var(--muted);margin-bottom:2rem;}
+.date{font-size:12px;color:var(--muted);margin-bottom:2rem;padding:8px 14px;background:var(--s1);border:1px solid var(--border);border-radius:8px;display:inline-block;font-family:var(--mono);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .2s;text-decoration:none;display:block;}
+.card:hover{border-color:#444;transform:translateY(-2px);}
+.card-icon{font-size:26px;margin-bottom:10px;}
+.card-name{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.card-status{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:10px;font-family:var(--mono);}
+.sdot{width:5px;height:5px;border-radius:50%;}
+.footer{margin-top:3rem;font-size:11px;color:var(--muted);font-family:var(--mono);text-align:center;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="title">MES AGENTS</div>
+  <div class="sub">Hub personnel · Palma de Mallorca</div>
+  <div class="date" id="dateEl"></div>
+  <div class="grid">
+    <a class="card" href="mentor.html">
+      <div class="card-icon">🧊</div>
+      <div class="card-name">Mentor Clim</div>
+      <div class="card-desc">Formation Frigicoll · Thermoking · 7 modules · QCM · rapports terrain</div>
+      <div class="card-status"><div class="sdot" style="background:#00c8ff;"></div><span style="color:#00c8ff;">Actif</span></div>
+    </a>
+    <a class="card" href="comptable.html">
+      <div class="card-icon">💰</div>
+      <div class="card-name">Comptable</div>
+      <div class="card-desc">Transactions · dettes · épargne · scan tickets · conseiller IA</div>
+      <div class="card-status"><div class="sdot" style="background:#00d48a;"></div><span style="color:#00d48a;">Actif</span></div>
+    </a>
+    <a class="card" href="veille.html">
+      <div class="card-icon">📡</div>
+      <div class="card-name">Veille</div>
+      <div class="card-desc">Brief du jour · 8 thèmes · historique · actus sauvegardées · Gmail</div>
+      <div class="card-status"><div class="sdot" style="background:#e8f04a;"></div><span style="color:#e8f04a;">Actif</span></div>
+    </a>
+  </div>
+  <div class="footer">
+    Ouvre ce fichier index.html pour accéder à tous tes agents
+  </div>
+</div>
+<script>
+const now=new Date();
+document.getElementById('dateEl').textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+</script>
+</body>
+</html>
