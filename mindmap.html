@@ -8,114 +8,201 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#f8f9fc;--s1:#ffffff;--s2:#f0f2f7;--border:#d8dce8;
+  --bg:#f0f2f7;--s1:#ffffff;--s2:#e8eaf0;--border:#d0d4e4;
   --text:#1a1d2e;--muted:#5a6080;--dim:#9095b0;
+  --accent:#3b82f6;
   --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden;}
 
-/* TOOLBAR */
-.toolbar{position:fixed;top:0;left:0;right:0;height:50px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;padding:0 12px;z-index:100;flex-wrap:nowrap;overflow-x:auto;}
-.toolbar::-webkit-scrollbar{display:none;}
-.t-logo{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);margin-right:8px;white-space:nowrap;}
-.t-sep{width:1px;height:24px;background:var(--border);margin:0 6px;flex-shrink:0;}
-.t-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--body);transition:all .15s;}
-.t-btn:hover{background:var(--s2);color:var(--text);border-color:var(--dim);}
-.t-btn.active{background:var(--text);color:var(--s1);border-color:var(--text);}
-.t-btn.danger:hover{border-color:#ef4444;color:#ef4444;}
-.t-select{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--s1);color:var(--text);font-size:11px;outline:none;cursor:pointer;font-family:var(--body);}
-.t-color{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;}
-.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;flex-shrink:0;}
+/* ===== TOOLBAR ===== */
+.toolbar{position:fixed;top:0;left:0;right:0;background:var(--s1);border-bottom:1px solid var(--border);z-index:100;user-select:none;}
+.tb-row{display:flex;align-items:center;gap:2px;padding:4px 10px;flex-wrap:nowrap;min-height:38px;}
+.tb-row+.tb-row{border-top:1px solid var(--border);}
+.tb-sep{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0;}
+.tb-label{font-size:10px;color:var(--muted);white-space:nowrap;padding:0 3px;}
+.tb-btn{display:flex;align-items:center;gap:3px;padding:4px 8px;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--body);transition:all .12s;}
+.tb-btn:hover{background:var(--s2);color:var(--text);border-color:var(--border);}
+.tb-btn.active{background:var(--text);color:var(--s1);border-color:var(--text);}
+.tb-btn.warn:hover{border-color:#ef4444;color:#ef4444;background:#fef2f2;}
+.tb-select{padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--s1);color:var(--text);font-size:11px;outline:none;cursor:pointer;font-family:var(--body);max-width:120px;}
+.tb-color{width:26px;height:26px;border-radius:5px;border:1px solid var(--border);cursor:pointer;padding:2px;flex-shrink:0;}
+.tb-number{width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--s1);color:var(--text);font-size:11px;outline:none;font-family:var(--body);}
+.tb-range{width:70px;accent-color:var(--accent);}
+.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:3px 8px;border:1px solid var(--border);border-radius:4px;flex-shrink:0;}
 .home-link:hover{border-color:var(--text);color:var(--text);}
+.tb-logo{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);margin-right:6px;white-space:nowrap;flex-shrink:0;}
 
-/* CANVAS */
-.canvas-wrap{position:fixed;top:50px;left:0;right:0;bottom:0;overflow:hidden;background:var(--bg);cursor:grab;}
+/* ===== CANVAS ===== */
+.canvas-wrap{position:fixed;left:0;right:0;bottom:0;overflow:hidden;background:var(--bg);cursor:grab;}
 .canvas-wrap.grabbing{cursor:grabbing;}
-.canvas-wrap.adding{cursor:crosshair;}
+.canvas-wrap.adding-node{cursor:crosshair;}
+.canvas-wrap.adding-frame{cursor:crosshair;}
+.canvas-wrap.connecting{cursor:cell;}
+.canvas-wrap.panning{cursor:grab;}
+.canvas-wrap.panning.grabbing{cursor:grabbing;}
+.canvas-wrap.panning .node,.canvas-wrap.panning .frame,.canvas-wrap.panning .textbox{pointer-events:none;}
 #canvas{position:absolute;top:0;left:0;transform-origin:0 0;}
 
-/* NODES */
-.node{position:absolute;border-radius:10px;padding:8px 14px;cursor:pointer;user-select:none;border:2px solid transparent;transition:box-shadow .15s,border-color .15s;min-width:100px;max-width:200px;text-align:center;}
-.node:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);}
-.node.selected{border-color:rgba(0,0,0,.3)!important;box-shadow:0 0 0 3px rgba(0,0,0,.08);}
+/* BG GRID */
+.canvas-wrap{background-image:radial-gradient(circle,#c8ccd8 1px,transparent 1px);background-size:24px 24px;}
+
+/* ===== NODES ===== */
+.node{position:absolute;border-radius:8px;padding:8px 14px;cursor:pointer;user-select:none;border:2px solid transparent;min-width:80px;max-width:240px;text-align:center;transition:box-shadow .15s;}
+.node:hover{box-shadow:0 4px 20px rgba(0,0,0,.15);}
+.node.selected{outline:2px solid var(--accent);outline-offset:2px;}
 .node-label{font-size:12px;font-weight:500;line-height:1.3;pointer-events:none;}
 .node-sub{font-size:10px;opacity:.75;margin-top:2px;line-height:1.3;pointer-events:none;}
-.node.center{border-radius:50%;width:120px;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;}
-.node.pole{border-radius:12px;padding:10px 16px;}
 
-/* EDIT INPUT */
-.node-edit{position:absolute;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:500;border:2px solid rgba(0,0,0,.3);outline:none;text-align:center;background:rgba(255,255,255,.95);min-width:100px;max-width:200px;font-family:var(--body);resize:none;}
+/* ===== FRAMES ===== */
+.frame{position:absolute;border-radius:6px;cursor:pointer;user-select:none;border:2px solid #94a3b8;}
+.frame:hover{outline:1px dashed var(--accent);}
+.frame.selected{outline:2px solid var(--accent);outline-offset:2px;}
+.frame-label{position:absolute;top:-22px;left:0;font-size:11px;font-family:var(--mono);font-weight:600;color:#475569;white-space:nowrap;pointer-events:none;}
+.frame-resize{position:absolute;right:-5px;bottom:-5px;width:10px;height:10px;background:var(--accent);border-radius:2px;cursor:se-resize;}
 
-/* CONTEXT MENU */
-.ctx-menu{position:fixed;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:180px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.12);}
-.ctx-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--text);}
+/* ===== TEXT BOXES ===== */
+.textbox{position:absolute;cursor:pointer;user-select:none;border:1.5px dashed transparent;padding:4px 8px;min-width:60px;min-height:24px;}
+.textbox:hover{border-color:var(--accent);}
+.textbox.selected{border-color:var(--accent);border-style:solid;}
+.textbox-content{pointer-events:none;white-space:pre-wrap;word-break:break-word;}
+
+/* ===== EDIT ===== */
+.inline-edit{position:absolute;border-radius:6px;padding:5px 8px;font-size:12px;border:2px solid var(--accent);outline:none;text-align:center;background:rgba(255,255,255,.97);min-width:80px;font-family:var(--body);resize:none;z-index:50;}
+
+/* ===== CONTEXT MENU ===== */
+.ctx{position:fixed;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:190px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.14);display:none;}
+.ctx-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--text);}
 .ctx-item:hover{background:var(--s2);}
-.ctx-item.danger{color:#ef4444;}
-.ctx-item.danger:hover{background:#fef2f2;}
-.ctx-sep{height:1px;background:var(--border);margin:4px 0;}
+.ctx-item.warn{color:#ef4444;}
+.ctx-item.warn:hover{background:#fef2f2;}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0;}
+.ctx-sub{font-size:10px;color:var(--muted);padding:4px 10px 2px;font-family:var(--mono);}
 
-/* NOTE PANEL */
-.note-panel{position:fixed;right:0;top:50px;bottom:0;width:300px;background:var(--s1);border-left:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;gap:10px;transform:translateX(100%);transition:transform .25s;z-index:90;}
-.note-panel.open{transform:translateX(0);}
-.note-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
-.note-field{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--body);background:var(--bg);color:var(--text);outline:none;resize:none;flex:1;}
-.note-field:focus{border-color:var(--dim);}
-.note-save{padding:7px 14px;border:1px solid var(--border);border-radius:6px;background:var(--text);color:var(--s1);font-size:11px;cursor:pointer;font-family:var(--mono);}
-.note-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;margin-left:auto;}
+/* ===== NOTE PANEL ===== */
+.side-panel{position:fixed;right:0;bottom:0;width:280px;background:var(--s1);border-left:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:8px;transform:translateX(100%);transition:transform .22s;z-index:90;}
+.side-panel.open{transform:translateX(0);}
+.sp-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;justify-content:space-between;}
+.sp-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;}
+.sp-field{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-family:var(--body);background:var(--bg);color:var(--text);outline:none;resize:none;}
+.sp-field:focus{border-color:var(--accent);}
+.sp-btn{padding:7px 14px;border:none;border-radius:5px;background:var(--text);color:var(--s1);font-size:11px;cursor:pointer;font-family:var(--mono);}
 
-/* MINIMAP */
-.minimap{position:fixed;bottom:16px;right:16px;width:160px;height:100px;background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;z-index:80;}
-.minimap canvas{width:100%;height:100%;}
+/* ===== ZOOM / SELECTION INFO ===== */
+.statusbar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:4px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);z-index:80;display:flex;gap:12px;align-items:center;}
 
-/* ZOOM */
-.zoom-info{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);z-index:80;}
+/* ===== SELECTION BOX ===== */
+.sel-box{position:absolute;border:1.5px dashed var(--accent);background:rgba(59,130,246,.06);pointer-events:none;z-index:10;}
 
-/* TOOLTIP */
-.tooltip{position:fixed;background:var(--text);color:var(--s1);border-radius:6px;padding:4px 8px;font-size:11px;pointer-events:none;z-index:300;display:none;}
+/* ===== TOOLTIP ===== */
+.tip{position:fixed;background:#1a1d2e;color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;pointer-events:none;z-index:600;display:none;white-space:nowrap;}
 </style>
 </head>
 <body>
 
 <div class="toolbar" id="toolbar">
-  <div class="t-logo">✦ NEXUS MINDMAP</div>
-  <div class="t-sep"></div>
-  <button class="t-btn" onclick="setMode('select')" id="btn-select" title="Sélectionner">↖ Sélect.</button>
-  <button class="t-btn" onclick="setMode('add')" id="btn-add" title="Ajouter un nœud">+ Nœud</button>
-  <button class="t-btn" onclick="setMode('connect')" id="btn-connect" title="Connecter">⟶ Lien</button>
-  <div class="t-sep"></div>
-  <button class="t-btn" onclick="deleteSelected()" class="danger" title="Supprimer">🗑 Suppr.</button>
-  <button class="t-btn" onclick="duplicateSelected()" title="Dupliquer">⧉ Dupli.</button>
-  <div class="t-sep"></div>
-  <select class="t-select" id="nodeShape" onchange="changeShape(this.value)" title="Forme">
-    <option value="rect">Rectangle</option>
-    <option value="rounded">Arrondi</option>
-    <option value="circle">Cercle</option>
-    <option value="pill">Pilule</option>
-  </select>
-  <select class="t-select" id="fontSize" onchange="changeFontSize(this.value)" title="Taille texte">
-    <option value="10">10px</option>
-    <option value="11">11px</option>
-    <option value="12" selected>12px</option>
-    <option value="14">14px</option>
-    <option value="16">16px</option>
-    <option value="18">18px</option>
-  </select>
-  <div class="t-sep"></div>
-  <label style="font-size:11px;color:var(--muted);white-space:nowrap;">Fond:</label>
-  <input type="color" class="t-color" id="bgColor" onchange="changeNodeBg(this.value)" value="#3b82f6">
-  <label style="font-size:11px;color:var(--muted);white-space:nowrap;">Texte:</label>
-  <input type="color" class="t-color" id="textColor" onchange="changeNodeText(this.value)" value="#ffffff">
-  <div class="t-sep"></div>
-  <button class="t-btn" onclick="autoLayout()" title="Réorganiser automatiquement">⊞ Auto-layout</button>
-  <button class="t-btn" onclick="fitView()" title="Ajuster la vue">⊡ Fit</button>
-  <button class="t-btn" onclick="zoomIn()">+ Zoom</button>
-  <button class="t-btn" onclick="zoomOut()">− Zoom</button>
-  <div class="t-sep"></div>
-  <button class="t-btn" onclick="exportPNG()" title="Exporter PNG">↓ PNG</button>
-  <button class="t-btn" onclick="saveMap()" title="Sauvegarder">💾 Sauv.</button>
-  <button class="t-btn" onclick="loadMap()" title="Charger">📂 Charger</button>
-  <button class="t-btn" onclick="resetMap()" title="Réinitialiser la carte NEXUS">↺ Reset</button>
-  <a class="home-link" href="index.html">← ACCUEIL</a>
+  <!-- ROW 1 : Navigation & modes -->
+  <div class="tb-row">
+    <div class="tb-logo">✦ NEXUS</div>
+    <div class="tb-sep"></div>
+    <!-- Undo/Redo -->
+    <button class="tb-btn" onclick="undo()" title="Annuler (Ctrl+Z)">↩ Annuler</button>
+    <button class="tb-btn" onclick="redo()" title="Rétablir (Ctrl+Y)">↪ Rétablir</button>
+    <div class="tb-sep"></div>
+    <!-- Modes -->
+    <button class="tb-btn" id="btn-select" onclick="setMode('select')" title="Sélectionner (V)">↖ Sélect.</button>
+    <button class="tb-btn" id="btn-pan" onclick="setMode('pan')" title="Naviguer sans sélectionner (H)">✋ Main</button>
+    <button class="tb-btn" id="btn-add" onclick="setMode('add')" title="Ajouter nœud (N)">◉ Nœud</button>
+    <button class="tb-btn" id="btn-frame" onclick="setMode('frame')" title="Dessiner un cadre (F)">▭ Cadre</button>
+    <button class="tb-btn" id="btn-text" onclick="setMode('text')" title="Zone de texte (T)">T Texte</button>
+    <button class="tb-btn" id="btn-connect" onclick="setMode('connect')" title="Connecter (C)">⟶ Lien</button>
+    <div class="tb-sep"></div>
+    <!-- Actions sélection -->
+    <button class="tb-btn warn" onclick="deleteSelected()" title="Supprimer (Del)">🗑 Suppr.</button>
+    <button class="tb-btn" onclick="duplicateSelected()" title="Dupliquer (Ctrl+D)">⧉ Dupli.</button>
+    <button class="tb-btn" onclick="groupSelected()" title="Grouper">⊞ Grouper</button>
+    <button class="tb-btn" onclick="bringForward()" title="Avant-plan">↑ Devant</button>
+    <button class="tb-btn" onclick="sendBackward()" title="Arrière-plan">↓ Derrière</button>
+    <div class="tb-sep"></div>
+    <!-- Alignement -->
+    <button class="tb-btn" onclick="alignNodes('left')" title="Aligner à gauche">⬤ G</button>
+    <button class="tb-btn" onclick="alignNodes('center')" title="Centrer horizontalement">⬤ C</button>
+    <button class="tb-btn" onclick="alignNodes('right')" title="Aligner à droite">⬤ D</button>
+    <button class="tb-btn" onclick="alignNodes('top')" title="Aligner en haut">⬤ H</button>
+    <button class="tb-btn" onclick="alignNodes('middle')" title="Centrer verticalement">⬤ M</button>
+    <button class="tb-btn" onclick="alignNodes('bottom')" title="Aligner en bas">⬤ B</button>
+    <div class="tb-sep"></div>
+    <!-- Vue -->
+    <button class="tb-btn" onclick="fitView()">⊡ Fit</button>
+    <button class="tb-btn" onclick="zoomIn()">＋</button>
+    <button class="tb-btn" onclick="zoomOut()">－</button>
+    <button class="tb-btn" onclick="resetZoom()">100%</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="autoLayout()">⊞ Auto</button>
+    <button class="tb-btn" onclick="resetMap()">↺ Reset</button>
+    <button class="tb-btn" onclick="saveToFile()">💾 Export</button>
+    <button class="tb-btn" onclick="loadFromFile()">📂 Import</button>
+    <a class="home-link" href="index.html">← Accueil</a>
+  </div>
+
+  <!-- ROW 2 : Style de l'élément sélectionné -->
+  <div class="tb-row" id="styleRow">
+    <div class="tb-label">Forme:</div>
+    <select class="tb-select" id="elShape" onchange="applyStyle('shape',this.value)">
+      <option value="rounded">Arrondi</option>
+      <option value="rect">Rectangle</option>
+      <option value="circle">Cercle</option>
+      <option value="pill">Pilule</option>
+      <option value="diamond">Losange</option>
+      <option value="hexagon">Hexagone</option>
+    </select>
+    <div class="tb-sep"></div>
+    <div class="tb-label">Fond:</div>
+    <input type="color" class="tb-color" id="elBg" value="#3b82f6" onchange="applyStyle('bg',this.value)">
+    <div class="tb-label">Texte:</div>
+    <input type="color" class="tb-color" id="elColor" value="#ffffff" onchange="applyStyle('color',this.value)">
+    <div class="tb-label">Bordure:</div>
+    <input type="color" class="tb-color" id="elBorder" value="#1e40af" onchange="applyStyle('borderColor',this.value)">
+    <input class="tb-number" type="number" id="elBorderW" value="2" min="0" max="10" onchange="applyStyle('borderWidth',parseInt(this.value))" title="Épaisseur bordure">
+    <div class="tb-sep"></div>
+    <div class="tb-label">Opacité:</div>
+    <input type="range" class="tb-range" id="elOpacity" min="10" max="100" value="100" oninput="applyStyle('opacity',parseInt(this.value));document.getElementById('elOpacityVal').textContent=this.value+'%'">
+    <span id="elOpacityVal" style="font-size:10px;color:var(--muted);width:30px;">100%</span>
+    <div class="tb-sep"></div>
+    <div class="tb-label">Texte:</div>
+    <select class="tb-select" id="elFont" onchange="applyStyle('fontFamily',this.value)">
+      <option value="DM Sans">DM Sans</option>
+      <option value="Syne">Syne</option>
+      <option value="Georgia">Georgia</option>
+      <option value="monospace">Mono</option>
+      <option value="Arial">Arial</option>
+    </select>
+    <input class="tb-number" type="number" id="elFontSize" value="12" min="8" max="36" onchange="applyStyle('fontSize',parseInt(this.value))" title="Taille">
+    <button class="tb-btn" id="elBold" onclick="toggleBold()" title="Gras">B</button>
+    <button class="tb-btn" id="elItalic" onclick="toggleItalic()" title="Italique" style="font-style:italic;">I</button>
+    <select class="tb-select" id="elAlign" onchange="applyStyle('textAlign',this.value)">
+      <option value="center">≡ Centre</option>
+      <option value="left">≡ Gauche</option>
+      <option value="right">≡ Droite</option>
+    </select>
+    <div class="tb-sep"></div>
+    <div class="tb-label">Ombre:</div>
+    <input type="range" class="tb-range" id="elShadow" min="0" max="30" value="0" oninput="applyStyle('shadow',parseInt(this.value))">
+    <div class="tb-sep"></div>
+    <div class="tb-label">Lien:</div>
+    <select class="tb-select" id="edgeStyle" onchange="applyEdgeStyle(this.value)">
+      <option value="curve">Courbe</option>
+      <option value="straight">Droite</option>
+      <option value="elbow">Coudé</option>
+    </select>
+    <input type="color" class="tb-color" id="edgeColor" value="#94a3b8" onchange="applyEdgeColorSelected(this.value)">
+    <input class="tb-number" type="number" id="edgeWidth" value="1.5" min="0.5" max="6" step="0.5" onchange="applyEdgeWidthSelected(parseFloat(this.value))">
+    <select class="tb-select" id="edgeArrow" onchange="applyEdgeProp('arrow',this.value)">
+      <option value="end">→ Flèche fin</option>
+      <option value="both">↔ Double</option>
+      <option value="none">— Sans</option>
+    </select>
+  </div>
 </div>
 
 <div class="canvas-wrap" id="canvasWrap">
@@ -124,613 +211,721 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
   </div>
 </div>
 
-<div class="note-panel" id="notePanel">
-  <div style="display:flex;align-items:center;">
-    <div class="note-title" id="notePanelTitle">Notes</div>
-    <button class="note-close" onclick="closeNotePanel()">✕</button>
-  </div>
-  <input class="note-field" id="noteNodeLabel" placeholder="Libellé du nœud" style="flex:none;height:36px;resize:none;"/>
-  <input class="note-field" id="noteNodeSub" placeholder="Sous-titre (optionnel)" style="flex:none;height:36px;resize:none;"/>
-  <textarea class="note-field" id="noteContent" placeholder="Notes, idées, liens, statut..."></textarea>
-  <button class="note-save" onclick="saveNote()">Enregistrer</button>
+<div class="sel-box" id="selBox" style="display:none;"></div>
+<div class="ctx" id="ctxMenu"></div>
+<div class="tip" id="tip"></div>
+<div class="statusbar" id="statusbar">
+  <span id="zoomLabel">100%</span>
+  <span id="selLabel">Aucune sélection</span>
+  <span id="modeLabel">Mode : Sélection</span>
 </div>
 
-<div class="zoom-info" id="zoomInfo">100%</div>
-<div class="ctx-menu" id="ctxMenu" style="display:none;"></div>
-<div class="tooltip" id="tooltip"></div>
+<!-- NOTE PANEL -->
+<div class="side-panel" id="sidePanel">
+  <div class="sp-title">
+    <span id="spTitle">Propriétés</span>
+    <button class="sp-close" onclick="closeSidePanel()">✕</button>
+  </div>
+  <input class="sp-field" id="spLabel" placeholder="Libellé principal" style="height:34px;"/>
+  <input class="sp-field" id="spSub" placeholder="Sous-titre" style="height:34px;"/>
+  <textarea class="sp-field" id="spNotes" placeholder="Notes, idées, statut, liens..." style="flex:1;min-height:120px;"></textarea>
+  <input class="sp-field" id="spLink" placeholder="Lien URL (optionnel)" style="height:34px;"/>
+  <div style="display:flex;gap:6px;">
+    <button class="sp-btn" onclick="savePanel()" style="flex:1;">Enregistrer</button>
+    <button class="sp-btn" style="background:var(--s2);color:var(--text);" onclick="closeSidePanel()">Fermer</button>
+  </div>
+</div>
 
 <script>
-// ===== STATE =====
-let nodes=[], edges=[], selectedIds=new Set(), mode='select';
-let scale=1, panX=300, panY=300;
+// =========== STATE ===========
+let nodes=[], edges=[], frames=[], textboxes=[];
+let selectedIds=new Set(), selectedEdges=new Set();
+let mode='select';
+let scale=1, panX=300, panY=200;
 let isPanning=false, panStart={x:0,y:0};
-let dragNode=null, dragOffset={x:0,y:0};
-let connectStart=null;
-let noteNodeId=null;
+let dragId=null, dragType=null, dragOffset={x:0,y:0};
+let connectStart=null, connectType=null;
+let drawingFrame=false, frameStart={x:0,y:0}, frameEl=null;
+let selBoxActive=false, selBoxStart={x:0,y:0};
 let history=[], historyIdx=-1;
+let panelId=null, panelType=null;
+let idCounter=200;
 
-const canvas=document.getElementById('canvas');
+const cvs=document.getElementById('canvas');
 const svg=document.getElementById('svgLayer');
 const wrap=document.getElementById('canvasWrap');
 
-// ===== NEXUS DATA =====
+// =========== NEXUS DATA ===========
 function getNexusData(){
   const cx=1200,cy=800;
+  const n=(id,x,y,w,h,label,sub,bg,color,shape,fontSize)=>({id,x,y,w,h,label,sub:sub||'',bg,color,shape:shape||'rounded',fontSize:fontSize||12,notes:'',opacity:100,borderColor:'transparent',borderWidth:2,shadow:0,fontFamily:'DM Sans',fontWeight:'normal',fontStyle:'normal',textAlign:'center',link:''});
   const nodes=[
-    // CENTER
-    {id:'center',x:cx-60,y:cy-60,w:120,h:120,label:'NEXUS',sub:'Holding',bg:'#1a1d2e',color:'#ffffff',shape:'circle',fontSize:14,notes:''},
-    // POLES
-    {id:'p-auto',x:cx+150,y:cy-200,w:160,h:55,label:'Pôle Auto & Mobilité',sub:'',bg:'#2563eb',color:'#fff',shape:'pole',fontSize:12,notes:''},
-    {id:'p-transport',x:cx+150,y:cy+80,w:160,h:55,label:'Pôle Transport & Logistique',sub:'',bg:'#16a34a',color:'#fff',shape:'pole',fontSize:11,notes:''},
-    {id:'p-immo',x:cx-80,y:cy+250,w:160,h:55,label:'Pôle Immobilier & Construction',sub:'',bg:'#ca8a04',color:'#fff',shape:'pole',fontSize:11,notes:''},
-    {id:'p-secu',x:cx-350,y:cy-200,w:160,h:55,label:'Pôle Défense & Sécurité',sub:'',bg:'#dc2626',color:'#fff',shape:'pole',fontSize:12,notes:''},
-    {id:'p-divert',x:cx-80,y:cy-320,w:160,h:55,label:'Pôle Divertissement & Expérience',sub:'',bg:'#ea580c',color:'#fff',shape:'pole',fontSize:10,notes:''},
-    {id:'p-luxe',x:cx+150,y:cy-450,w:160,h:55,label:'Pôle Luxe & Lifestyle',sub:'',bg:'#9333ea',color:'#fff',shape:'pole',fontSize:12,notes:''},
-    // AUTO
-    {id:'palm',x:cx+380,y:cy-380,w:150,h:45,label:'Palm Motors',sub:'Import/export auto',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'concess',x:cx+380,y:cy-320,w:150,h:45,label:'Concessionnaire',sub:'Vente véhicule premium',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'convoyage',x:cx+380,y:cy-260,w:150,h:45,label:'Transport véhicule',sub:'Convoyage & livraison premium',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'course',x:cx+380,y:cy-200,w:150,h:45,label:'Course automobile',sub:'Écurie, rallyes & circuits',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'garage',x:cx+380,y:cy-140,w:150,h:45,label:'Garage automobile',sub:'Réparation & préparation',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'collection',x:cx+380,y:cy-80,w:150,h:45,label:'Collection automobile',sub:'Collection privée & rareté',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'location-auto',x:cx+380,y:cy-20,w:150,h:45,label:'Location automobile',sub:'Longue & courte durée',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'paris-auto',x:cx+380,y:cy+40,w:150,h:45,label:'Paris automobile',sub:'Paris sportif automobile',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // TRANSPORT
-    {id:'carga-express',x:cx+380,y:cy+120,w:150,h:45,label:'Carga Express',sub:'Convoyage de véhicules',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'carga-clean',x:cx+380,y:cy+180,w:150,h:45,label:'Carga Pro Clean',sub:'Nettoyage de véhicules',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'transport-secu',x:cx+380,y:cy+240,w:150,h:45,label:'Transport sécurisé',sub:'Transport sous protection',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'logistique',x:cx+380,y:cy+300,w:150,h:45,label:'Logistique',sub:'Stockage & entreposage sécurisé',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'conciergerie-t',x:cx+380,y:cy+360,w:150,h:45,label:'Conciergerie transport',sub:'Service sur mesure',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'reseau-log',x:cx+380,y:cy+420,w:150,h:45,label:'Réseau logistique',sub:'Couverture & partenaires',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // IMMO
-    {id:'agence-immo',x:cx-60,y:cy+380,w:150,h:45,label:'Agence immobilière',sub:'Achat, vente, location',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'btp',x:cx-220,y:cy+380,w:150,h:45,label:'Généraliste BTP',sub:'Tout corps d\'état',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'construction',x:cx-380,y:cy+380,w:150,h:45,label:'Construction immobilière',sub:'Maisons, villas, immeubles',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'renovation',x:cx-380,y:cy+440,w:150,h:45,label:'Rénovation immobilière',sub:'Rénovation & entretien',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'design-int',x:cx-220,y:cy+440,w:150,h:45,label:'Design & décoration',sub:'Intérieur & extérieur',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'amenagement',x:cx-60,y:cy+440,w:150,h:45,label:'Aménagement luxe',sub:'Villas, hôtels & bureaux',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'nautique',x:cx+100,y:cy+440,w:150,h:45,label:'Design nautique',sub:'Yachts & résidences marines',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'encastrable',x:cx+100,y:cy+380,w:150,h:45,label:'Encastrable matériaux',sub:'Fourniture & installation',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // SECURITE
-    {id:'secu-privee',x:cx-580,y:cy-320,w:150,h:45,label:'Sécurité privée',sub:'Agents & surveillance',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'convois-secu',x:cx-580,y:cy-260,w:150,h:45,label:'Convois sécurisés',sub:'Transport sensible',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'milice',x:cx-580,y:cy-200,w:150,h:45,label:'Milice privée',sub:'Protection rapprochée',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'armement',x:cx-580,y:cy-140,w:150,h:45,label:'Armement',sub:'Matériel & équipement',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'risques',x:cx-580,y:cy-80,w:150,h:45,label:'Gestion des risques',sub:'Audits & prévention',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'secu-even',x:cx-580,y:cy-20,w:150,h:45,label:'Sécurité événements',sub:'Protection VIP',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'secu-immo',x:cx-580,y:cy+40,w:150,h:45,label:'Sécurité immobilière',sub:'Surveillance & contrôle',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // DIVERTISSEMENT
-    {id:'casinos',x:cx-320,y:cy-460,w:150,h:45,label:'Casinos',sub:'Établissements de prestige',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'jeux',x:cx-160,y:cy-460,w:150,h:45,label:'Jeux',sub:'Tables & machines',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'paris-sport',x:cx-480,y:cy-460,w:150,h:45,label:'Paris sportifs',sub:'En ligne & point de vente',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'evenements',x:cx-480,y:cy-400,w:150,h:45,label:'Événements privés',sub:'Organisation sur mesure',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'voyages',x:cx-320,y:cy-400,w:150,h:45,label:'Voyage de luxe',sub:'Séjours & expériences VIP',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'courses-hip',x:cx-160,y:cy-400,w:150,h:45,label:'Courses',sub:'Hippiques & automobile',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'conciergerie-p',x:cx,y:cy-400,w:150,h:45,label:'Conciergerie premium',sub:'Service exclusif',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'nexus-net',x:cx,y:cy-460,w:150,h:45,label:'NEXUS',sub:'Réseau & networking',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // LUXE
-    {id:'mode',x:cx+380,y:cy-520,w:150,h:45,label:'Mode',sub:'Vêtements & accessoires',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'horlogerie',x:cx+380,y:cy-580,w:150,h:45,label:'Horlogerie & bijoux',sub:'Pièces rares & collection',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'parfumerie',x:cx+380,y:cy-640,w:150,h:45,label:'Parfumerie & cosmétique',sub:'Marque & création',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'sante',x:cx+220,y:cy-580,w:150,h:45,label:'Santé & bien-être',sub:'Clinique & soins premium',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'sport',x:cx+220,y:cy-640,w:150,h:45,label:'Sport',sub:'Management & événements',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'complexe',x:cx+60,y:cy-580,w:150,h:45,label:'Complexe sportif',sub:'Salles & infrastructure',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'art',x:cx+60,y:cy-640,w:150,h:45,label:'Art',sub:'Galeries & expositions',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'collection-art',x:cx-100,y:cy-580,w:150,h:45,label:'Collection d\'art',sub:'Achat & investissement',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'ecuries',x:cx-100,y:cy-640,w:150,h:45,label:'Écuries & chevaux',sub:'Élevage & compétition',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    {id:'nutrition',x:cx-260,y:cy-580,w:150,h:45,label:'Nutrition sportive',sub:'Performance & bien-être',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
-    // HOLDING CENTER ELEMENTS
-    {id:'finance',x:cx-200,y:cy-80,w:140,h:45,label:'Finance & Investissements',sub:'Gestion & stratégie',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
-    {id:'marketing',x:cx-200,y:cy+20,w:140,h:45,label:'Marketing & Communication',sub:'Média & influence',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
-    {id:'club',x:cx-200,y:cy+120,w:140,h:45,label:'Club investisseurs',sub:'Réseau international',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
-    // AUTRE
-    {id:'powerbank',x:cx+600,y:cy+500,w:150,h:45,label:'Location batterie externe',sub:'Autres projets',bg:'#64748b',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    n('center',cx-60,cy-60,120,120,'NEXUS','Holding','#1a1d2e','#fff','circle',15),
+    n('p-auto',cx+150,cy-200,160,55,'Pôle Auto & Mobilité','','#2563eb','#fff','pole',12),
+    n('p-transport',cx+150,cy+80,160,55,'Pôle Transport & Logistique','','#16a34a','#fff','pole',11),
+    n('p-immo',cx-80,cy+250,165,55,'Pôle Immobilier & Construction','','#ca8a04','#fff','pole',11),
+    n('p-secu',cx-360,cy-200,160,55,'Pôle Défense & Sécurité','','#dc2626','#fff','pole',12),
+    n('p-divert',cx-80,cy-320,165,55,'Pôle Divertissement & Expérience','','#ea580c','#fff','pole',10),
+    n('p-luxe',cx+150,cy-420,160,55,'Pôle Luxe & Lifestyle','','#9333ea','#fff','pole',12),
+    n('palm',cx+380,cy-360,150,45,'Palm Motors','Import/export auto','#3b82f6','#fff','rounded',11),
+    n('concess',cx+380,cy-305,150,45,'Concessionnaire','Vente véhicule premium','#3b82f6','#fff','rounded',11),
+    n('convoyage',cx+380,cy-250,150,45,'Transport véhicule','Convoyage & livraison premium','#3b82f6','#fff','rounded',11),
+    n('course',cx+380,cy-195,150,45,'Course automobile','Écurie, rallyes & circuits','#3b82f6','#fff','rounded',11),
+    n('garage',cx+380,cy-140,150,45,'Garage automobile','Réparation & préparation','#3b82f6','#fff','rounded',11),
+    n('collection',cx+380,cy-85,150,45,'Collection automobile','Collection privée & rareté','#3b82f6','#fff','rounded',11),
+    n('location-auto',cx+380,cy-30,150,45,'Location automobile','Longue & courte durée','#3b82f6','#fff','rounded',11),
+    n('paris-auto',cx+380,cy+25,150,45,'Paris automobile','Paris sportif automobile','#3b82f6','#fff','rounded',11),
+    n('carga-express',cx+380,cy+120,150,45,'Carga Express','Convoyage de véhicules','#22c55e','#fff','rounded',11),
+    n('carga-clean',cx+380,cy+175,150,45,'Carga Pro Clean','Nettoyage de véhicules','#22c55e','#fff','rounded',11),
+    n('transport-secu',cx+380,cy+230,150,45,'Transport sécurisé','Transport sous protection','#22c55e','#fff','rounded',11),
+    n('logistique',cx+380,cy+285,150,45,'Logistique','Stockage & entreposage sécurisé','#22c55e','#fff','rounded',11),
+    n('conciergerie-t',cx+380,cy+340,150,45,'Conciergerie transport','Service sur mesure','#22c55e','#fff','rounded',11),
+    n('reseau-log',cx+380,cy+395,150,45,'Réseau logistique','Couverture & partenaires','#22c55e','#fff','rounded',11),
+    n('agence-immo',cx+60,cy+380,150,45,'Agence immobilière','Achat, vente, location','#eab308','#fff','rounded',11),
+    n('btp',cx-100,cy+380,150,45,'Généraliste BTP','Tout corps d\'état','#eab308','#fff','rounded',11),
+    n('construction',cx-260,cy+380,150,45,'Construction immobilière','Maisons, villas, immeubles','#eab308','#fff','rounded',11),
+    n('renovation',cx-260,cy+435,150,45,'Rénovation immobilière','Rénovation & entretien','#eab308','#fff','rounded',11),
+    n('design-int',cx-100,cy+435,150,45,'Design & décoration','Intérieur & extérieur','#eab308','#fff','rounded',11),
+    n('amenagement',cx+60,cy+435,150,45,'Aménagement luxe','Villas, hôtels & bureaux','#eab308','#fff','rounded',11),
+    n('nautique',cx+220,cy+435,150,45,'Design nautique','Yachts & résidences marines','#eab308','#fff','rounded',11),
+    n('encastrable',cx+220,cy+380,150,45,'Encastrable matériaux','Fourniture & installation','#eab308','#fff','rounded',11),
+    n('secu-privee',cx-580,cy-300,150,45,'Sécurité privée','Agents & surveillance','#ef4444','#fff','rounded',11),
+    n('convois-secu',cx-580,cy-245,150,45,'Convois sécurisés','Transport sensible','#ef4444','#fff','rounded',11),
+    n('milice',cx-580,cy-190,150,45,'Milice privée','Protection rapprochée','#ef4444','#fff','rounded',11),
+    n('armement',cx-580,cy-135,150,45,'Armement','Matériel & équipement','#ef4444','#fff','rounded',11),
+    n('risques',cx-580,cy-80,150,45,'Gestion des risques','Audits & prévention','#ef4444','#fff','rounded',11),
+    n('secu-even',cx-580,cy-25,150,45,'Sécurité événements','Protection VIP','#ef4444','#fff','rounded',11),
+    n('secu-immo',cx-580,cy+30,150,45,'Sécurité immobilière','Surveillance & contrôle','#ef4444','#fff','rounded',11),
+    n('casinos',cx-320,cy-440,150,45,'Casinos','Établissements de prestige','#f97316','#fff','rounded',11),
+    n('jeux',cx-160,cy-440,150,45,'Jeux','Tables & machines','#f97316','#fff','rounded',11),
+    n('paris-sport',cx-480,cy-440,150,45,'Paris sportifs','En ligne & point de vente','#f97316','#fff','rounded',11),
+    n('evenements',cx-480,cy-385,150,45,'Événements privés','Organisation sur mesure','#f97316','#fff','rounded',11),
+    n('voyages',cx-320,cy-385,150,45,'Voyage de luxe','Séjours & expériences VIP','#f97316','#fff','rounded',11),
+    n('courses-hip',cx-160,cy-385,150,45,'Courses','Hippiques & automobile','#f97316','#fff','rounded',11),
+    n('conciergerie-p',cx,cy-385,150,45,'Conciergerie premium','Service exclusif','#f97316','#fff','rounded',11),
+    n('nexus-net',cx,cy-440,150,45,'NEXUS Network','Réseau & networking','#f97316','#fff','rounded',11),
+    n('mode',cx+380,cy-500,150,45,'Mode','Vêtements & accessoires','#a855f7','#fff','rounded',11),
+    n('horlogerie',cx+380,cy-555,150,45,'Horlogerie & bijoux','Pièces rares & collection','#a855f7','#fff','rounded',11),
+    n('parfumerie',cx+380,cy-610,150,45,'Parfumerie & cosmétique','Marque & création','#a855f7','#fff','rounded',11),
+    n('sante',cx+220,cy-555,150,45,'Santé & bien-être','Clinique & soins premium','#a855f7','#fff','rounded',11),
+    n('sport',cx+220,cy-610,150,45,'Sport','Management & événements','#a855f7','#fff','rounded',11),
+    n('complexe',cx+60,cy-555,150,45,'Complexe sportif','Salles & infrastructure','#a855f7','#fff','rounded',11),
+    n('art',cx+60,cy-610,150,45,'Art','Galeries & expositions','#a855f7','#fff','rounded',11),
+    n('collection-art',cx-100,cy-555,150,45,'Collection d\'art','Achat & investissement','#a855f7','#fff','rounded',11),
+    n('ecuries',cx-100,cy-610,150,45,'Écuries & chevaux','Élevage & compétition','#a855f7','#fff','rounded',11),
+    n('nutrition',cx-260,cy-555,150,45,'Nutrition sportive','Performance & bien-être','#a855f7','#fff','rounded',11),
+    n('finance',cx-210,cy-80,145,45,'Finance & Investissements','Gestion & stratégie','#475569','#fff','rounded',10),
+    n('marketing',cx-210,cy+20,145,45,'Marketing & Communication','Média & influence','#475569','#fff','rounded',10),
+    n('club',cx-210,cy+120,145,45,'Club Investisseurs','Réseau international','#475569','#fff','rounded',10),
+    n('powerbank',cx+600,cy+500,155,45,'Location batterie externe','Autres projets','#64748b','#fff','rounded',11),
   ];
+  const e=(from,to,style,color,width,arrow)=>({id:`e_${from}_${to}`,from,to,style:style||'curve',color:color||'#b0b8d0',width:width||1.5,arrow:arrow||'end'});
   const edges=[
-    {from:'center',to:'p-auto'},{from:'center',to:'p-transport'},{from:'center',to:'p-immo'},
-    {from:'center',to:'p-secu'},{from:'center',to:'p-divert'},{from:'center',to:'p-luxe'},
-    {from:'center',to:'finance'},{from:'center',to:'marketing'},{from:'center',to:'club'},
-    // auto
-    {from:'p-auto',to:'palm'},{from:'p-auto',to:'concess'},{from:'p-auto',to:'convoyage'},
-    {from:'p-auto',to:'course'},{from:'p-auto',to:'garage'},{from:'p-auto',to:'collection'},
-    {from:'p-auto',to:'location-auto'},{from:'p-auto',to:'paris-auto'},
-    // transport
-    {from:'p-transport',to:'carga-express'},{from:'p-transport',to:'carga-clean'},
-    {from:'p-transport',to:'transport-secu'},{from:'p-transport',to:'logistique'},
-    {from:'p-transport',to:'conciergerie-t'},{from:'p-transport',to:'reseau-log'},
-    // immo
-    {from:'p-immo',to:'agence-immo'},{from:'p-immo',to:'btp'},{from:'p-immo',to:'construction'},
-    {from:'p-immo',to:'renovation'},{from:'p-immo',to:'design-int'},{from:'p-immo',to:'amenagement'},
-    {from:'p-immo',to:'nautique'},{from:'p-immo',to:'encastrable'},
-    // secu
-    {from:'p-secu',to:'secu-privee'},{from:'p-secu',to:'convois-secu'},{from:'p-secu',to:'milice'},
-    {from:'p-secu',to:'armement'},{from:'p-secu',to:'risques'},{from:'p-secu',to:'secu-even'},
-    {from:'p-secu',to:'secu-immo'},
-    // divert
-    {from:'p-divert',to:'casinos'},{from:'p-divert',to:'jeux'},{from:'p-divert',to:'paris-sport'},
-    {from:'p-divert',to:'evenements'},{from:'p-divert',to:'voyages'},{from:'p-divert',to:'courses-hip'},
-    {from:'p-divert',to:'conciergerie-p'},{from:'p-divert',to:'nexus-net'},
-    // luxe
-    {from:'p-luxe',to:'mode'},{from:'p-luxe',to:'horlogerie'},{from:'p-luxe',to:'parfumerie'},
-    {from:'p-luxe',to:'sante'},{from:'p-luxe',to:'sport'},{from:'p-luxe',to:'complexe'},
-    {from:'p-luxe',to:'art'},{from:'p-luxe',to:'collection-art'},{from:'p-luxe',to:'ecuries'},
-    {from:'p-luxe',to:'nutrition'},
+    e('center','p-auto'),e('center','p-transport'),e('center','p-immo'),
+    e('center','p-secu'),e('center','p-divert'),e('center','p-luxe'),
+    e('center','finance'),e('center','marketing'),e('center','club'),
+    e('p-auto','palm'),e('p-auto','concess'),e('p-auto','convoyage'),
+    e('p-auto','course'),e('p-auto','garage'),e('p-auto','collection'),
+    e('p-auto','location-auto'),e('p-auto','paris-auto'),
+    e('p-transport','carga-express'),e('p-transport','carga-clean'),
+    e('p-transport','transport-secu'),e('p-transport','logistique'),
+    e('p-transport','conciergerie-t'),e('p-transport','reseau-log'),
+    e('p-immo','agence-immo'),e('p-immo','btp'),e('p-immo','construction'),
+    e('p-immo','renovation'),e('p-immo','design-int'),e('p-immo','amenagement'),
+    e('p-immo','nautique'),e('p-immo','encastrable'),
+    e('p-secu','secu-privee'),e('p-secu','convois-secu'),e('p-secu','milice'),
+    e('p-secu','armement'),e('p-secu','risques'),e('p-secu','secu-even'),e('p-secu','secu-immo'),
+    e('p-divert','casinos'),e('p-divert','jeux'),e('p-divert','paris-sport'),
+    e('p-divert','evenements'),e('p-divert','voyages'),e('p-divert','courses-hip'),
+    e('p-divert','conciergerie-p'),e('p-divert','nexus-net'),
+    e('p-luxe','mode'),e('p-luxe','horlogerie'),e('p-luxe','parfumerie'),
+    e('p-luxe','sante'),e('p-luxe','sport'),e('p-luxe','complexe'),
+    e('p-luxe','art'),e('p-luxe','collection-art'),e('p-luxe','ecuries'),e('p-luxe','nutrition'),
   ];
-  return {nodes,edges};
+  return{nodes,edges,frames:[],textboxes:[]};
 }
 
-// ===== INIT =====
+// =========== INIT ===========
 function init(){
-  const saved=localStorage.getItem('nexus_mindmap');
-  if(saved){const d=JSON.parse(saved);nodes=d.nodes;edges=d.edges;}
-  else{const d=getNexusData();nodes=d.nodes;edges=d.edges;}
-  render();fitView();
+  const saved=localStorage.getItem('nexus_mm2');
+  if(saved){try{const d=JSON.parse(saved);nodes=d.nodes||[];edges=d.edges||[];frames=d.frames||[];textboxes=d.textboxes||[];}catch(e){loadDefault();}}
+  else loadDefault();
+  updateToolbarHeight();render();fitView();saveHistory();
+}
+function loadDefault(){const d=getNexusData();nodes=d.nodes;edges=d.edges;frames=d.frames;textboxes=d.textboxes;}
+
+function updateToolbarHeight(){
+  const tbH=document.getElementById('toolbar').offsetHeight;
+  wrap.style.top=tbH+'px';
+  document.getElementById('sidePanel').style.top=tbH+'px';
 }
 
-// ===== RENDER =====
+// =========== RENDER ===========
 function render(){
-  // Update SVG size
-  const bounds=getMapBounds();
-  svg.setAttribute('width',bounds.w+500);
-  svg.setAttribute('height',bounds.h+500);
+  renderSVG();renderNodes();renderFrames();renderTextboxes();applyTransform();updateStatus();
+}
 
-  // Draw edges
+function getNodeCenter(n){return{x:n.x+n.w/2,y:n.y+(n.shape==='circle'?n.h/2:n.h/2)};}
+
+function renderSVG(){
   svg.innerHTML='';
+  // defs for arrows
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  svg.appendChild(defs);
+
   edges.forEach(e=>{
     const from=nodes.find(n=>n.id===e.from);
     const to=nodes.find(n=>n.id===e.to);
     if(!from||!to)return;
-    const x1=from.x+from.w/2, y1=from.y+from.h/2;
-    const x2=to.x+to.w/2, y2=to.y+to.h/2;
-    const dx=x2-x1, dy=y2-y1;
-    const d=`M${x1},${y1} C${x1+dx*0.5},${y1} ${x2-dx*0.5},${y2} ${x2},${y2}`;
+    const markerId='arr_'+e.id.replace(/[^a-z0-9]/gi,'_');
+    const marker=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    marker.setAttribute('id',markerId);marker.setAttribute('markerWidth','8');marker.setAttribute('markerHeight','8');
+    marker.setAttribute('refX','6');marker.setAttribute('refY','3');marker.setAttribute('orient','auto');
+    const mp=document.createElementNS('http://www.w3.org/2000/svg','path');
+    mp.setAttribute('d','M0,0 L0,6 L8,3 z');mp.setAttribute('fill',e.color||'#b0b8d0');
+    if(e.arrow!=='none')marker.appendChild(mp);
+    defs.appendChild(marker);
+
+    const c1=getNodeCenter(from),c2=getNodeCenter(to);
+    let d='';
+    if(e.style==='straight'||e.style===undefined){
+      d=`M${c1.x},${c1.y} L${c2.x},${c2.y}`;
+    } else if(e.style==='elbow'){
+      const mx=(c1.x+c2.x)/2;
+      d=`M${c1.x},${c1.y} L${mx},${c1.y} L${mx},${c2.y} L${c2.x},${c2.y}`;
+    } else {
+      const dx=c2.x-c1.x,dy=c2.y-c1.y;
+      d=`M${c1.x},${c1.y} C${c1.x+dx*0.4},${c1.y} ${c2.x-dx*0.4},${c2.y} ${c2.x},${c2.y}`;
+    }
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',d);
-    path.setAttribute('stroke',selectedIds.has(e.from)||selectedIds.has(e.to)?'#475569':'#c8ccd8');
-    path.setAttribute('stroke-width','1.5');
+    path.setAttribute('stroke',e.color||'#b0b8d0');
+    path.setAttribute('stroke-width',e.width||1.5);
     path.setAttribute('fill','none');
-    path.setAttribute('opacity','0.7');
-    path.dataset.from=e.from;path.dataset.to=e.to;
+    path.setAttribute('opacity','0.8');
+    if(e.arrow!=='none')path.setAttribute('marker-end',`url(#${markerId})`);
+    if(e.arrow==='both')path.setAttribute('marker-start',`url(#${markerId})`);
+    if(selectedEdges.has(e.id))path.setAttribute('stroke-dasharray','6,3');
+    path.dataset.eid=e.id;
+    path.style.pointerEvents='stroke';
+    path.style.cursor='pointer';
+    path.addEventListener('click',ev=>{ev.stopPropagation();selectedEdges.clear();selectedEdges.add(e.id);selectedIds.clear();render();});
+    path.addEventListener('contextmenu',ev=>{ev.preventDefault();ev.stopPropagation();selectedEdges.clear();selectedEdges.add(e.id);showEdgeCtx(ev.clientX,ev.clientY,e.id);});
     svg.appendChild(path);
   });
-
-  // Draw nodes
-  const existing=new Set();
-  canvas.querySelectorAll('.node').forEach(el=>existing.add(el.dataset.id));
-
-  // Remove deleted
-  canvas.querySelectorAll('.node').forEach(el=>{
-    if(!nodes.find(n=>n.id===el.dataset.id))el.remove();
-  });
-
-  // Add/update nodes
-  nodes.forEach(n=>{
-    let el=canvas.querySelector(`.node[data-id="${n.id}"]`);
-    if(!el){
-      el=document.createElement('div');
-      el.className='node';
-      el.dataset.id=n.id;
-      el.innerHTML=`<div class="node-label"></div><div class="node-sub"></div>`;
-      canvas.appendChild(el);
-      addNodeEvents(el,n);
-    }
-    updateNodeEl(el,n);
-  });
-
-  applyTransform();
 }
 
-function updateNodeEl(el,n){
-  el.style.left=n.x+'px';
-  el.style.top=n.y+'px';
-  el.style.width=n.w+'px';
-  el.style.minHeight=n.h+'px';
-  el.style.background=n.bg;
-  el.style.color=n.color;
-  el.style.borderColor=selectedIds.has(n.id)?'rgba(0,0,0,.4)':'transparent';
-  el.querySelector('.node-label').textContent=n.label;
-  el.querySelector('.node-label').style.fontSize=(n.fontSize||12)+'px';
-  el.querySelector('.node-sub').textContent=n.sub||'';
-  el.querySelector('.node-sub').style.display=n.sub?'block':'none';
+function getShapeStyle(shape){
+  if(shape==='circle')return'border-radius:50%;';
+  if(shape==='pill')return'border-radius:999px;';
+  if(shape==='rect')return'border-radius:4px;';
+  if(shape==='diamond')return'border-radius:4px;transform:rotate(45deg);';
+  if(shape==='hexagon')return'clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);border-radius:0;';
+  if(shape==='pole')return'border-radius:12px;';
+  return'border-radius:8px;';
+}
 
-  // Shape
-  if(n.shape==='circle'){el.style.borderRadius='50%';el.style.width=n.h+'px';}
-  else if(n.shape==='pill'){el.style.borderRadius='999px';}
-  else if(n.shape==='pole'){el.style.borderRadius='12px';}
-  else{el.style.borderRadius='8px';}
+function renderNodes(){
+  cvs.querySelectorAll('.node').forEach(el=>{if(!nodes.find(n=>n.id===el.dataset.id))el.remove();});
+  nodes.forEach(n=>{
+    let el=cvs.querySelector(`.node[data-id="${n.id}"]`);
+    if(!el){el=document.createElement('div');el.className='node';el.dataset.id=n.id;el.dataset.type='node';
+      el.innerHTML=`<div class="node-label"></div><div class="node-sub"></div>`;
+      cvs.appendChild(el);attachElEvents(el,'node');}
+    el.style.cssText=`left:${n.x}px;top:${n.y}px;width:${n.w}px;min-height:${n.h}px;background:${n.bg};color:${n.color};border:${n.borderWidth||2}px solid ${n.borderColor||'transparent'};opacity:${(n.opacity||100)/100};box-shadow:${n.shadow?`0 ${n.shadow/3}px ${n.shadow}px rgba(0,0,0,0.2)`:''};${getShapeStyle(n.shape||'rounded')}text-align:${n.textAlign||'center'};`;
+    el.classList.toggle('selected',selectedIds.has(n.id));
+    const lbl=el.querySelector('.node-label');
+    lbl.textContent=n.label;
+    lbl.style.cssText=`font-size:${n.fontSize||12}px;font-family:${n.fontFamily||'DM Sans'};font-weight:${n.fontWeight||'normal'};font-style:${n.fontStyle||'normal'};`;
+    const sub=el.querySelector('.node-sub');
+    sub.textContent=n.sub||'';sub.style.display=n.sub?'block':'none';
+  });
+}
 
-  if(n.notes){
-    el.style.boxShadow=selectedIds.has(n.id)?'':'inset 0 0 0 2px rgba(255,255,255,.3)';
-  }
+function renderFrames(){
+  cvs.querySelectorAll('.frame').forEach(el=>{if(!frames.find(f=>f.id===el.dataset.id))el.remove();});
+  frames.forEach(f=>{
+    let el=cvs.querySelector(`.frame[data-id="${f.id}"]`);
+    if(!el){el=document.createElement('div');el.className='frame';el.dataset.id=f.id;el.dataset.type='frame';
+      el.innerHTML=`<div class="frame-label"></div><div class="frame-resize"></div>`;
+      cvs.insertBefore(el,cvs.firstChild);attachElEvents(el,'frame');
+      el.querySelector('.frame-resize').addEventListener('mousedown',ev=>{ev.stopPropagation();startResizeFrame(f.id,ev);});
+    }
+    el.style.cssText=`left:${f.x}px;top:${f.y}px;width:${f.w}px;height:${f.h}px;background:${f.bg||'rgba(59,130,246,0.06)'};border:${f.borderWidth||2}px solid ${f.borderColor||'#94a3b8'};border-radius:${f.radius||6}px;opacity:${(f.opacity||100)/100};`;
+    el.classList.toggle('selected',selectedIds.has(f.id));
+    el.querySelector('.frame-label').textContent=f.label||'';
+  });
+}
+
+function renderTextboxes(){
+  cvs.querySelectorAll('.textbox').forEach(el=>{if(!textboxes.find(t=>t.id===el.dataset.id))el.remove();});
+  textboxes.forEach(t=>{
+    let el=cvs.querySelector(`.textbox[data-id="${t.id}"]`);
+    if(!el){el=document.createElement('div');el.className='textbox';el.dataset.id=t.id;el.dataset.type='textbox';
+      el.innerHTML=`<div class="textbox-content"></div>`;
+      cvs.appendChild(el);attachElEvents(el,'textbox');}
+    el.style.cssText=`left:${t.x}px;top:${t.y}px;width:${t.w||200}px;opacity:${(t.opacity||100)/100};`;
+    el.classList.toggle('selected',selectedIds.has(t.id));
+    const c=el.querySelector('.textbox-content');
+    c.textContent=t.text||'';
+    c.style.cssText=`font-size:${t.fontSize||14}px;font-family:${t.fontFamily||'DM Sans'};font-weight:${t.fontWeight||'normal'};font-style:${t.fontStyle||'normal'};color:${t.color||'#1a1d2e'};text-align:${t.textAlign||'left'};`;
+  });
 }
 
 function applyTransform(){
-  canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
-  document.getElementById('zoomInfo').textContent=Math.round(scale*100)+'%';
+  cvs.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zoomLabel').textContent=Math.round(scale*100)+'%';
 }
 
-// ===== NODE EVENTS =====
-function addNodeEvents(el,n){
-  el.addEventListener('mousedown',e=>{
-    if(e.button!==0)return;
-    e.stopPropagation();
+// =========== ATTACH EVENTS ===========
+function attachElEvents(el,type){
+  el.addEventListener('mousedown',ev=>{
+    if(ev.button!==0)return;ev.stopPropagation();
+    const id=el.dataset.id;
     if(mode==='connect'){
-      if(!connectStart){
-        connectStart=n.id;
-        el.style.outline='2px dashed #475569';
-      } else if(connectStart!==n.id){
-        addEdge(connectStart,n.id);
-        canvas.querySelectorAll('.node').forEach(ne=>ne.style.outline='');
-        connectStart=null;
-        saveHistory();
-      }
+      if(!connectStart){connectStart=id;connectType=type;el.style.outline='2px dashed #3b82f6';}
+      else if(connectStart!==id){addEdge(connectStart,id);cvs.querySelectorAll('.node,.frame').forEach(e=>e.style.outline='');connectStart=null;saveHistory();}
       return;
     }
-    if(!e.shiftKey)selectedIds.clear();
-    selectedIds.add(n.id);
-    dragNode=n.id;
+    if(!ev.shiftKey){selectedIds.clear();selectedEdges.clear();}
+    selectedIds.add(id);
+    dragId=id;dragType=type;
     const rect=el.getBoundingClientRect();
-    dragOffset={x:(e.clientX-rect.left)/scale,y:(e.clientY-rect.top)/scale};
-    render();
+    dragOffset={x:(ev.clientX-rect.left)/scale,y:(ev.clientY-rect.top)/scale};
+    updateStyleBar();render();
   });
-
-  el.addEventListener('dblclick',e=>{
-    e.stopPropagation();
-    startEdit(n.id,el);
-  });
-
-  el.addEventListener('contextmenu',e=>{
-    e.preventDefault();e.stopPropagation();
-    selectedIds.clear();selectedIds.add(n.id);
-    showCtxMenu(e.clientX,e.clientY,n.id);
-    render();
-  });
+  el.addEventListener('dblclick',ev=>{ev.stopPropagation();startInlineEdit(el.dataset.id,el.dataset.type,el);});
+  el.addEventListener('contextmenu',ev=>{ev.preventDefault();ev.stopPropagation();selectedIds.clear();selectedIds.add(el.dataset.id);showNodeCtx(ev.clientX,ev.clientY,el.dataset.id,type);render();});
 }
 
-// ===== EDIT IN PLACE =====
-function startEdit(id,el){
-  const n=nodes.find(x=>x.id===id);
-  if(!n)return;
-  const input=document.createElement('textarea');
-  input.className='node-edit';
-  input.value=n.label+(n.sub?'\n'+n.sub:'');
-  input.style.left=n.x+'px';
-  input.style.top=n.y+'px';
-  input.style.width=n.w+'px';
-  input.style.background=n.bg;
-  input.style.color=n.color;
-  canvas.appendChild(input);
-  el.style.visibility='hidden';
-  input.focus();input.select();
-
-  const finish=()=>{
-    const lines=input.value.split('\n');
-    n.label=lines[0]||n.label;
-    n.sub=lines[1]||'';
-    input.remove();
-    el.style.visibility='visible';
-    saveHistory();render();
+// =========== INLINE EDIT ===========
+function startInlineEdit(id,type,el){
+  let item=getItem(id,type);if(!item)return;
+  const ta=document.createElement('textarea');ta.className='inline-edit';
+  if(type==='textbox')ta.value=item.text||'';
+  else ta.value=item.label+(item.sub?'\n'+item.sub:'');
+  ta.style.left=item.x+'px';ta.style.top=item.y+'px';ta.style.width=item.w+'px';
+  ta.style.color=type==='textbox'?item.color:item.color;
+  ta.style.background=type==='textbox'?'rgba(255,255,255,0.97)':item.bg;
+  cvs.appendChild(ta);el.style.visibility='hidden';ta.focus();ta.select();
+  const done=()=>{
+    const lines=ta.value.split('\n');
+    if(type==='textbox'){item.text=ta.value;}
+    else{item.label=lines[0]||item.label;item.sub=lines[1]||'';}
+    ta.remove();el.style.visibility='visible';saveHistory();render();
   };
-  input.addEventListener('blur',finish);
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();finish();}if(e.key==='Escape')finish();});
+  ta.addEventListener('blur',done);
+  ta.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey&&type!=='textbox'){ev.preventDefault();done();}if(ev.key==='Escape')done();});
 }
 
-// ===== CANVAS EVENTS =====
-wrap.addEventListener('mousedown',e=>{
-  if(e.button!==0)return;
-  if(mode==='add'){
-    const pos=screenToCanvas(e.clientX,e.clientY);
-    addNode(pos.x-75,pos.y-22);
-    return;
+// =========== CANVAS EVENTS ===========
+let drawingFrameRect={x:0,y:0,w:0,h:0};
+wrap.addEventListener('mousedown',ev=>{
+  if(ev.button!==0)return;
+  closeCtxMenu();
+  if(mode==='pan'){isPanning=true;panStart={x:ev.clientX-panX,y:ev.clientY-panY};wrap.classList.add('grabbing');return;}
+  if(mode==='add'){const p=s2c(ev.clientX,ev.clientY);addNode(p.x-75,p.y-22);return;}
+  if(mode==='text'){const p=s2c(ev.clientX,ev.clientY);addTextbox(p.x,p.y);return;}
+  if(mode==='frame'){
+    drawingFrame=true;frameStart=s2c(ev.clientX,ev.clientY);
+    frameEl=document.createElement('div');
+    frameEl.style.cssText=`position:absolute;border:2px dashed #3b82f6;background:rgba(59,130,246,0.05);pointer-events:none;z-index:5;`;
+    cvs.appendChild(frameEl);return;
   }
-  if(!dragNode){
-    isPanning=true;
-    panStart={x:e.clientX-panX,y:e.clientY-panY};
+  if(ev.target===wrap||ev.target===cvs||ev.target===svg){
+    if(mode==='select'&&!ev.shiftKey){
+      selBoxActive=true;selBoxStart=s2c(ev.clientX,ev.clientY);
+      document.getElementById('selBox').style.display='block';
+    }
+    if(!ev.shiftKey){selectedIds.clear();selectedEdges.clear();render();}
+    isPanning=true;panStart={x:ev.clientX-panX,y:ev.clientY-panY};
     wrap.classList.add('grabbing');
   }
 });
 
-window.addEventListener('mousemove',e=>{
-  if(isPanning){
-    panX=e.clientX-panStart.x;
-    panY=e.clientY-panStart.y;
-    applyTransform();
+window.addEventListener('mousemove',ev=>{
+  if(drawingFrame){
+    const p=s2c(ev.clientX,ev.clientY);
+    const x=Math.min(p.x,frameStart.x),y=Math.min(p.y,frameStart.y);
+    const w=Math.abs(p.x-frameStart.x),h=Math.abs(p.y-frameStart.y);
+    drawingFrameRect={x,y,w,h};
+    if(frameEl){frameEl.style.left=x+'px';frameEl.style.top=y+'px';frameEl.style.width=w+'px';frameEl.style.height=h+'px';}
+    return;
   }
-  if(dragNode){
-    const n=nodes.find(x=>x.id===dragNode);
-    if(n){
-      const pos=screenToCanvas(e.clientX,e.clientY);
-      n.x=pos.x-dragOffset.x;
-      n.y=pos.y-dragOffset.y;
-      render();
-    }
+  if(selBoxActive&&!dragId){
+    const p=s2c(ev.clientX,ev.clientY);
+    const x=Math.min(p.x,selBoxStart.x),y=Math.min(p.y,selBoxStart.y);
+    const w=Math.abs(p.x-selBoxStart.x),h=Math.abs(p.y-selBoxStart.y);
+    const b=document.getElementById('selBox');
+    const rx=panX+x*scale,ry=panY+y*scale;
+    b.style.cssText=`display:block;left:${rx}px;top:${ry+document.getElementById('toolbar').offsetHeight}px;width:${w*scale}px;height:${h*scale}px;`;
+    nodes.forEach(n=>{if(n.x>=x&&n.y>=y&&n.x+n.w<=x+w&&n.y+n.h<=y+h)selectedIds.add(n.id);});
+    return;
+  }
+  if(isPanning&&!dragId){panX=ev.clientX-panStart.x;panY=ev.clientY-panStart.y;applyTransform();}
+  if(dragId){
+    const item=getItem(dragId,dragType);if(!item)return;
+    const p=s2c(ev.clientX,ev.clientY);
+    item.x=p.x-dragOffset.x;item.y=p.y-dragOffset.y;render();
   }
 });
 
-window.addEventListener('mouseup',e=>{
-  if(dragNode){saveHistory();}
-  isPanning=false;dragNode=null;
+window.addEventListener('mouseup',ev=>{
+  if(drawingFrame){
+    drawingFrame=false;if(frameEl){frameEl.remove();frameEl=null;}
+    if(drawingFrameRect.w>30&&drawingFrameRect.h>30)addFrame(drawingFrameRect);
+    return;
+  }
+  selBoxActive=false;document.getElementById('selBox').style.display='none';
+  if(dragId)saveHistory();
+  isPanning=false;dragId=null;dragType=null;
   wrap.classList.remove('grabbing');
+  if(mode==='pan')wrap.classList.add('panning');
 });
 
-wrap.addEventListener('click',e=>{
-  if(e.target===wrap||e.target===canvas||e.target===svg){
-    selectedIds.clear();
-    closeCtxMenu();
-    render();
-  }
-});
-
-wrap.addEventListener('wheel',e=>{
-  e.preventDefault();
-  const delta=e.deltaY>0?0.9:1.1;
-  const pos=screenToCanvas(e.clientX,e.clientY);
-  scale=Math.min(Math.max(scale*delta,0.1),4);
-  panX=e.clientX-pos.x*scale;
-  panY=e.clientY-pos.y*scale;
-  applyTransform();
+wrap.addEventListener('wheel',ev=>{
+  ev.preventDefault();
+  const delta=ev.deltaY>0?0.9:1.1;
+  const p=s2c(ev.clientX,ev.clientY);
+  scale=Math.min(Math.max(scale*delta,0.05),5);
+  panX=ev.clientX-p.x*scale;panY=ev.clientY-p.y*scale;applyTransform();
 },{passive:false});
 
-// ===== CONTEXT MENU =====
-function showCtxMenu(x,y,id){
-  const menu=document.getElementById('ctxMenu');
-  menu.style.display='block';
-  menu.style.left=x+'px';menu.style.top=y+'px';
-  const n=nodes.find(x=>x.id===id);
-  menu.innerHTML=`
-    <div class="ctx-item" onclick="startEditNote('${id}')">📝 Notes & édition</div>
-    <div class="ctx-item" onclick="startConnectFrom('${id}')">⟶ Connecter</div>
-    <div class="ctx-sep"></div>
-    <div class="ctx-item" onclick="changeNodeColor('${id}')">🎨 Couleur</div>
-    <div class="ctx-item" onclick="duplicateNode('${id}')">⧉ Dupliquer</div>
-    <div class="ctx-item" onclick="addChildNode('${id}')">+ Ajouter enfant</div>
-    <div class="ctx-sep"></div>
-    <div class="ctx-item danger" onclick="deleteNode('${id}')">🗑 Supprimer</div>
-    <div class="ctx-item danger" onclick="deleteNodeAndChildren('${id}')">🗑 Suppr. + enfants</div>
-  `;
-  closeCtxMenu._id=id;
+// =========== RESIZE FRAME ===========
+let resizingFrame=null,resizeStart={x:0,y:0,w:0,h:0};
+function startResizeFrame(id,ev){
+  resizingFrame=id;const f=frames.find(x=>x.id===id);
+  resizeStart={x:ev.clientX,y:ev.clientY,w:f.w,h:f.h};
+  const mm=e=>{const f2=frames.find(x=>x.id===resizingFrame);if(!f2)return;f2.w=Math.max(80,resizeStart.w+(e.clientX-resizeStart.x)/scale);f2.h=Math.max(60,resizeStart.h+(e.clientY-resizeStart.y)/scale);render();};
+  const mu=()=>{resizingFrame=null;saveHistory();window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);};
+  window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu);
 }
-function closeCtxMenu(){document.getElementById('ctxMenu').style.display='none';}
-document.addEventListener('click',e=>{if(!document.getElementById('ctxMenu').contains(e.target))closeCtxMenu();});
 
-// ===== NODE OPERATIONS =====
-let nodeCounter=100;
-function genId(){return 'n'+(++nodeCounter)+'_'+Date.now();}
+// =========== UTILS ===========
+function s2c(sx,sy){return{x:(sx-panX)/scale,y:(sy-panY-document.getElementById('toolbar').offsetHeight)/scale};}
+function genId(){return 'el_'+(++idCounter)+'_'+Date.now();}
+function getItem(id,type){
+  if(type==='node')return nodes.find(n=>n.id===id);
+  if(type==='frame')return frames.find(f=>f.id===id);
+  if(type==='textbox')return textboxes.find(t=>t.id===id);
+  return nodes.find(n=>n.id===id)||frames.find(f=>f.id===id)||textboxes.find(t=>t.id===id);
+}
 
+// =========== ADD ELEMENTS ===========
 function addNode(x,y,label='Nouveau nœud',parentId=null){
   const id=genId();
-  const n={id,x,y,w:150,h:45,label,sub:'',bg:'#64748b',color:'#ffffff',shape:'rounded',fontSize:12,notes:''};
+  const n={id,x,y,w:150,h:45,label,sub:'',bg:'#64748b',color:'#ffffff',shape:'rounded',fontSize:12,notes:'',opacity:100,borderColor:'transparent',borderWidth:2,shadow:0,fontFamily:'DM Sans',fontWeight:'normal',fontStyle:'normal',textAlign:'center',link:''};
   nodes.push(n);
-  if(parentId)edges.push({from:parentId,to:id});
+  if(parentId)addEdge(parentId,id);
   saveHistory();render();
-  // auto edit
-  setTimeout(()=>{const el=canvas.querySelector(`.node[data-id="${id}"]`);if(el)startEdit(id,el);},50);
+  setTimeout(()=>{const el=cvs.querySelector(`.node[data-id="${id}"]`);if(el)startInlineEdit(id,'node',el);},50);
   return id;
 }
 
-function addChildNode(parentId){
-  closeCtxMenu();
-  const parent=nodes.find(n=>n.id===parentId);
-  if(!parent)return;
-  addNode(parent.x+parent.w+40,parent.y,`Enfant de ${parent.label.slice(0,15)}`,parentId);
+function addFrame(rect){
+  const id=genId();
+  frames.push({id,x:rect.x,y:rect.y,w:rect.w,h:rect.h,label:'Cadre',bg:'rgba(148,163,184,0.08)',borderColor:'#94a3b8',borderWidth:2,opacity:100,radius:6});
+  saveHistory();render();
+}
+
+function addTextbox(x,y){
+  const id=genId();
+  textboxes.push({id,x,y,w:200,h:40,text:'Texte libre',color:'#1a1d2e',fontSize:14,fontFamily:'DM Sans',fontWeight:'normal',fontStyle:'normal',textAlign:'left',opacity:100});
+  saveHistory();render();
+  setTimeout(()=>{const el=cvs.querySelector(`.textbox[data-id="${id}"]`);if(el)startInlineEdit(id,'textbox',el);},50);
 }
 
 function addEdge(from,to){
-  if(!edges.find(e=>e.from===from&&e.to===to))
-    edges.push({from,to});
-  render();
+  if(!edges.find(e=>e.from===from&&e.to===to)){
+    edges.push({id:`e_${from}_${to}_${Date.now()}`,from,to,style:'curve',color:'#b0b8d0',width:1.5,arrow:'end'});
+    render();
+  }
 }
 
-function deleteNode(id){
-  closeCtxMenu();
-  nodes=nodes.filter(n=>n.id!==id);
-  edges=edges.filter(e=>e.from!==id&&e.to!==id);
-  selectedIds.delete(id);
-  saveHistory();render();
-}
-
-function deleteNodeAndChildren(id){
-  closeCtxMenu();
-  const toDelete=new Set([id]);
-  let changed=true;
-  while(changed){changed=false;edges.forEach(e=>{if(toDelete.has(e.from)&&!toDelete.has(e.to)){toDelete.add(e.to);changed=true;}});}
-  nodes=nodes.filter(n=>!toDelete.has(n.id));
-  edges=edges.filter(e=>!toDelete.has(e.from)&&!toDelete.has(e.to));
-  toDelete.forEach(i=>selectedIds.delete(i));
-  saveHistory();render();
-}
-
+// =========== DELETE ===========
 function deleteSelected(){
-  selectedIds.forEach(id=>deleteNode(id));
+  selectedIds.forEach(id=>{
+    nodes=nodes.filter(n=>n.id!==id);
+    frames=frames.filter(f=>f.id!==id);
+    textboxes=textboxes.filter(t=>t.id!==id);
+    edges=edges.filter(e=>e.from!==id&&e.to!==id);
+  });
+  selectedEdges.forEach(eid=>edges=edges.filter(e=>e.id!==eid));
+  selectedIds.clear();selectedEdges.clear();saveHistory();render();
 }
 
-function duplicateNode(id){
-  closeCtxMenu();
-  const n=nodes.find(x=>x.id===id);
-  if(!n)return;
-  const newId=genId();
-  nodes.push({...n,id:newId,x:n.x+30,y:n.y+30});
+function deleteItem(id){selectedIds.clear();selectedIds.add(id);deleteSelected();}
+
+// =========== DUPLICATE ===========
+function duplicateSelected(){
+  const newIds=[];
+  selectedIds.forEach(id=>{
+    const n=nodes.find(x=>x.id===id);
+    if(n){const nid=genId();nodes.push({...n,id:nid,x:n.x+20,y:n.y+20});newIds.push(nid);}
+    const f=frames.find(x=>x.id===id);
+    if(f){const nid=genId();frames.push({...f,id:nid,x:f.x+20,y:f.y+20});newIds.push(nid);}
+    const t=textboxes.find(x=>x.id===id);
+    if(t){const nid=genId();textboxes.push({...t,id:nid,x:t.x+20,y:t.y+20});newIds.push(nid);}
+  });
+  selectedIds.clear();newIds.forEach(id=>selectedIds.add(id));saveHistory();render();
+}
+
+// =========== Z-ORDER ===========
+function bringForward(){
+  selectedIds.forEach(id=>{
+    const i=nodes.findIndex(n=>n.id===id);if(i>=0&&i<nodes.length-1){[nodes[i],nodes[i+1]]=[nodes[i+1],nodes[i]];}
+  });render();
+}
+function sendBackward(){
+  selectedIds.forEach(id=>{
+    const i=nodes.findIndex(n=>n.id===id);if(i>0){[nodes[i-1],nodes[i]]=[nodes[i],nodes[i-1]];}
+  });render();
+}
+
+// =========== ALIGN ===========
+function alignNodes(dir){
+  const sel=[...selectedIds].map(id=>nodes.find(n=>n.id===id)).filter(Boolean);
+  if(sel.length<2)return;
+  if(dir==='left'){const x=Math.min(...sel.map(n=>n.x));sel.forEach(n=>n.x=x);}
+  if(dir==='right'){const x=Math.max(...sel.map(n=>n.x+n.w));sel.forEach(n=>n.x=x-n.w);}
+  if(dir==='center'){const cx=(Math.min(...sel.map(n=>n.x))+Math.max(...sel.map(n=>n.x+n.w)))/2;sel.forEach(n=>n.x=cx-n.w/2);}
+  if(dir==='top'){const y=Math.min(...sel.map(n=>n.y));sel.forEach(n=>n.y=y);}
+  if(dir==='bottom'){const y=Math.max(...sel.map(n=>n.y+n.h));sel.forEach(n=>n.y=y-n.h);}
+  if(dir==='middle'){const cy=(Math.min(...sel.map(n=>n.y))+Math.max(...sel.map(n=>n.y+n.h)))/2;sel.forEach(n=>n.y=cy-n.h/2);}
   saveHistory();render();
 }
 
-function duplicateSelected(){selectedIds.forEach(id=>duplicateNode(id));}
-
-function startConnectFrom(id){
-  closeCtxMenu();
-  connectStart=id;
-  setMode('connect');
-  const el=canvas.querySelector(`.node[data-id="${id}"]`);
-  if(el)el.style.outline='2px dashed #475569';
-}
-
-// ===== NOTE PANEL =====
-function startEditNote(id){
-  closeCtxMenu();
-  const n=nodes.find(x=>x.id===id);
-  if(!n)return;
-  noteNodeId=id;
-  document.getElementById('notePanelTitle').textContent='Éditer : '+n.label;
-  document.getElementById('noteNodeLabel').value=n.label;
-  document.getElementById('noteNodeSub').value=n.sub||'';
-  document.getElementById('noteContent').value=n.notes||'';
-  document.getElementById('notePanel').classList.add('open');
-}
-
-function saveNote(){
-  if(!noteNodeId)return;
-  const n=nodes.find(x=>x.id===noteNodeId);
-  if(!n)return;
-  n.label=document.getElementById('noteNodeLabel').value||n.label;
-  n.sub=document.getElementById('noteNodeSub').value;
-  n.notes=document.getElementById('noteContent').value;
+// =========== GROUP ===========
+function groupSelected(){
+  const sel=[...selectedIds].map(id=>nodes.find(n=>n.id===id)).filter(Boolean);
+  if(sel.length<2)return;
+  const x=Math.min(...sel.map(n=>n.x))-16,y=Math.min(...sel.map(n=>n.y))-32;
+  const w=Math.max(...sel.map(n=>n.x+n.w))-x+16,h=Math.max(...sel.map(n=>n.y+n.h))-y+16;
+  const id=genId();
+  frames.push({id,x,y,w,h,label:'Groupe',bg:'rgba(100,116,139,0.05)',borderColor:'#94a3b8',borderWidth:1.5,opacity:100,radius:8});
   saveHistory();render();
 }
 
-function closeNotePanel(){
-  document.getElementById('notePanel').classList.remove('open');
-  noteNodeId=null;
-}
-
-// ===== COLOR CHANGE =====
-function changeNodeColor(id){
-  closeCtxMenu();
+// =========== STYLE BAR ===========
+function updateStyleBar(){
+  if(!selectedIds.size)return;
+  const id=[...selectedIds][0];
   const n=nodes.find(x=>x.id===id);
-  if(!n)return;
-  const input=document.createElement('input');
-  input.type='color';input.value=n.bg;
-  input.addEventListener('change',()=>{n.bg=input.value;render();saveHistory();});
-  input.click();
+  const f=frames.find(x=>x.id===id);
+  const t=textboxes.find(x=>x.id===id);
+  const item=n||f||t;if(!item)return;
+  if(n){document.getElementById('elShape').value=n.shape||'rounded';document.getElementById('elBg').value=n.bg||'#3b82f6';}
+  document.getElementById('elColor').value=item.color||'#ffffff';
+  document.getElementById('elBorder').value=item.borderColor||'#1e40af';
+  document.getElementById('elBorderW').value=item.borderWidth||2;
+  document.getElementById('elOpacity').value=item.opacity||100;
+  document.getElementById('elOpacityVal').textContent=(item.opacity||100)+'%';
+  document.getElementById('elFont').value=item.fontFamily||'DM Sans';
+  document.getElementById('elFontSize').value=item.fontSize||12;
+  document.getElementById('elBold').classList.toggle('active',item.fontWeight==='bold');
+  document.getElementById('elItalic').classList.toggle('active',item.fontStyle==='italic');
+  document.getElementById('elAlign').value=item.textAlign||'center';
+  document.getElementById('elShadow').value=item.shadow||0;
 }
 
-function changeNodeBg(val){
-  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.bg=val;});
+function applyStyle(prop,val){
+  selectedIds.forEach(id=>{
+    const item=nodes.find(n=>n.id===id)||frames.find(f=>f.id===id)||textboxes.find(t=>t.id===id);
+    if(item)item[prop]=val;
+  });
   render();
 }
 
-function changeNodeText(val){
-  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.color=val;});
-  render();
+function toggleBold(){
+  selectedIds.forEach(id=>{
+    const item=nodes.find(n=>n.id===id)||textboxes.find(t=>t.id===id);
+    if(item)item.fontWeight=item.fontWeight==='bold'?'normal':'bold';
+  });
+  document.getElementById('elBold').classList.toggle('active');render();
 }
 
-function changeShape(val){
-  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.shape=val;});
-  render();
+function toggleItalic(){
+  selectedIds.forEach(id=>{
+    const item=nodes.find(n=>n.id===id)||textboxes.find(t=>t.id===id);
+    if(item)item.fontStyle=item.fontStyle==='italic'?'normal':'italic';
+  });
+  document.getElementById('elItalic').classList.toggle('active');render();
 }
 
-function changeFontSize(val){
-  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.fontSize=parseInt(val);});
-  render();
+// =========== EDGE STYLE ===========
+function applyEdgeStyle(val){selectedEdges.forEach(eid=>{const e=edges.find(x=>x.id===eid);if(e)e.style=val;});render();}
+function applyEdgeColorSelected(val){selectedEdges.forEach(eid=>{const e=edges.find(x=>x.id===eid);if(e)e.color=val;});render();}
+function applyEdgeWidthSelected(val){selectedEdges.forEach(eid=>{const e=edges.find(x=>x.id===eid);if(e)e.width=val;});render();}
+function applyEdgeProp(prop,val){selectedEdges.forEach(eid=>{const e=edges.find(x=>x.id===eid);if(e)e[prop]=val;});render();}
+
+// =========== CONTEXT MENUS ===========
+function showNodeCtx(x,y,id,type){
+  const menu=document.getElementById('ctxMenu');
+  menu.style.cssText=`display:block;left:${x}px;top:${y}px;`;
+  menu.innerHTML=`
+    <div class="ctx-sub">NŒUD</div>
+    <div class="ctx-item" onclick="openSidePanel('${id}','${type}')">📝 Notes & propriétés</div>
+    <div class="ctx-item" onclick="startConnectFrom('${id}')">⟶ Connecter à...</div>
+    <div class="ctx-item" onclick="addChildNode('${id}')">+ Ajouter enfant</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="duplicateSelected()">⧉ Dupliquer</div>
+    <div class="ctx-item" onclick="bringForward()">↑ Mettre devant</div>
+    <div class="ctx-item" onclick="sendBackward()">↓ Mettre derrière</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item warn" onclick="deleteItem('${id}')">🗑 Supprimer</div>
+    ${type==='node'?`<div class="ctx-item warn" onclick="deleteWithEdges('${id}')">🗑 Suppr. + liens</div>`:''}
+  `;
 }
 
-// ===== MODE =====
+function showEdgeCtx(x,y,eid){
+  const menu=document.getElementById('ctxMenu');
+  menu.style.cssText=`display:block;left:${x}px;top:${y}px;`;
+  menu.innerHTML=`
+    <div class="ctx-sub">LIEN</div>
+    <div class="ctx-item warn" onclick="deleteEdge('${eid}')">🗑 Supprimer ce lien</div>
+  `;
+}
+
+function deleteEdge(eid){edges=edges.filter(e=>e.id!==eid);selectedEdges.clear();saveHistory();render();}
+function deleteWithEdges(id){deleteItem(id);}
+function closeCtxMenu(){document.getElementById('ctxMenu').style.display='none';}
+document.addEventListener('click',e=>{if(!document.getElementById('ctxMenu').contains(e.target))closeCtxMenu();});
+
+function startConnectFrom(id){closeCtxMenu();connectStart=id;setMode('connect');const el=cvs.querySelector(`.node[data-id="${id}"],.frame[data-id="${id}"]`);if(el)el.style.outline='2px dashed #3b82f6';}
+function addChildNode(parentId){closeCtxMenu();const p=nodes.find(n=>n.id===parentId);if(!p)return;addNode(p.x+p.w+50,p.y,'Enfant',parentId);}
+
+// =========== SIDE PANEL ===========
+function openSidePanel(id,type){
+  closeCtxMenu();
+  panelId=id;panelType=type;
+  const item=getItem(id,type);if(!item)return;
+  document.getElementById('spTitle').textContent='Propriétés : '+(item.label||item.text||'').slice(0,30);
+  document.getElementById('spLabel').value=type==='textbox'?item.text:item.label||'';
+  document.getElementById('spSub').value=item.sub||'';document.getElementById('spSub').style.display=type==='textbox'?'none':'block';
+  document.getElementById('spNotes').value=item.notes||'';
+  document.getElementById('spLink').value=item.link||'';
+  document.getElementById('sidePanel').classList.add('open');
+}
+function savePanel(){
+  if(!panelId)return;
+  const item=getItem(panelId,panelType);if(!item)return;
+  if(panelType==='textbox')item.text=document.getElementById('spLabel').value;
+  else{item.label=document.getElementById('spLabel').value;item.sub=document.getElementById('spSub').value;}
+  item.notes=document.getElementById('spNotes').value;
+  item.link=document.getElementById('spLink').value;
+  saveHistory();render();
+}
+function closeSidePanel(){document.getElementById('sidePanel').classList.remove('open');panelId=null;}
+
+// =========== MODE ===========
 function setMode(m){
   mode=m;
-  if(m!=='connect'){connectStart=null;canvas.querySelectorAll('.node').forEach(el=>el.style.outline='');}
-  ['select','add','connect'].forEach(id=>{
-    const btn=document.getElementById('btn-'+id);
-    if(btn)btn.classList.toggle('active',id===m);
+  if(m!=='connect'){connectStart=null;cvs.querySelectorAll('.node,.frame').forEach(el=>el.style.outline='');}
+  ['select','pan','add','frame','text','connect'].forEach(id=>{
+    const btn=document.getElementById('btn-'+id);if(btn)btn.classList.toggle('active',id===m);
   });
-  wrap.classList.toggle('adding',m==='add');
+  wrap.className='canvas-wrap';
+  if(m==='add'||m==='text')wrap.classList.add('adding-node');
+  if(m==='frame')wrap.classList.add('adding-frame');
+  if(m==='connect')wrap.classList.add('connecting');
+  if(m==='pan')wrap.classList.add('panning');
+  document.getElementById('modeLabel').textContent='Mode : '+{select:'Sélection',pan:'Navigation',add:'Nœud',frame:'Cadre',text:'Texte',connect:'Connexion'}[m];
 }
 
-// ===== VIEW =====
-function screenToCanvas(sx,sy){
-  return{x:(sx-panX)/scale,y:(sy-panY)/scale};
-}
-
+// =========== VIEW ===========
 function getMapBounds(){
-  if(!nodes.length)return{x:0,y:0,w:2400,h:1600};
-  const xs=nodes.map(n=>n.x),ys=nodes.map(n=>n.y);
-  const x=Math.min(...xs),y=Math.min(...ys);
-  const w=Math.max(...nodes.map(n=>n.x+n.w))-x;
-  const h=Math.max(...nodes.map(n=>n.y+n.h))-y;
-  return{x,y,w,h};
+  const all=[...nodes,...frames,...textboxes];
+  if(!all.length)return{x:0,y:0,w:2400,h:1600};
+  const xs=all.map(n=>n.x),ys=all.map(n=>n.y);
+  return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...all.map(n=>n.x+(n.w||100)))-Math.min(...xs),h:Math.max(...all.map(n=>n.y+(n.h||45)))-Math.min(...ys)};
 }
-
 function fitView(){
-  const b=getMapBounds();
-  const ww=wrap.offsetWidth,wh=wrap.offsetHeight-50;
-  const sx=(ww-80)/(b.w+100),sy=(wh-80)/(b.h+100);
-  scale=Math.min(sx,sy,1);
-  panX=40-(b.x*scale);
-  panY=40-(b.y*scale);
-  applyTransform();
+  const b=getMapBounds(),tbH=document.getElementById('toolbar').offsetHeight;
+  const ww=wrap.offsetWidth,wh=wrap.offsetHeight;
+  scale=Math.min((ww-80)/(b.w+100),(wh-80)/(b.h+100),1);
+  panX=40-b.x*scale;panY=40-b.y*scale;applyTransform();
+}
+function zoomIn(){scale=Math.min(scale*1.2,5);applyTransform();}
+function zoomOut(){scale=Math.max(scale*0.8,0.05);applyTransform();}
+function resetZoom(){scale=1;applyTransform();}
+
+function updateStatus(){
+  const n=selectedIds.size;
+  document.getElementById('selLabel').textContent=n?`${n} élément(s) sélectionné(s)`:'Aucune sélection';
 }
 
-function zoomIn(){scale=Math.min(scale*1.2,4);applyTransform();}
-function zoomOut(){scale=Math.max(scale*0.8,0.1);applyTransform();}
-
+// =========== AUTO LAYOUT ===========
 function autoLayout(){
-  const center=nodes.find(n=>n.id==='center');
-  if(!center)return;
+  const center=nodes.find(n=>n.id==='center');if(!center)return;
   const poles=edges.filter(e=>e.from==='center').map(e=>nodes.find(n=>n.id===e.to)).filter(Boolean);
-  const angleStep=Math.PI*2/poles.length;
-  const poleR=300;
+  const R=280;
   poles.forEach((pole,i)=>{
-    const angle=i*angleStep-Math.PI/2;
-    pole.x=center.x+center.w/2+Math.cos(angle)*poleR-pole.w/2;
-    pole.y=center.y+center.h/2+Math.sin(angle)*poleR-pole.h/2;
+    const angle=(Math.PI*2/poles.length)*i-Math.PI/2;
+    pole.x=center.x+center.w/2+Math.cos(angle)*R-pole.w/2;
+    pole.y=center.y+center.h/2+Math.sin(angle)*R-pole.h/2;
     const children=edges.filter(e=>e.from===pole.id).map(e=>nodes.find(n=>n.id===e.to)).filter(Boolean);
-    const cStep=(Math.PI*0.8)/(Math.max(children.length-1,1));
-    const cAngle=angle-Math.PI*0.4;
-    const childR=200;
+    const cStep=children.length>1?(Math.PI*0.7)/(children.length-1):0;
+    const cAngle=angle-Math.PI*0.35;
     children.forEach((child,j)=>{
       const ca=cAngle+j*cStep;
-      child.x=pole.x+pole.w/2+Math.cos(ca)*childR-child.w/2;
-      child.y=pole.y+pole.h/2+Math.sin(ca)*childR-child.h/2;
+      child.x=pole.x+pole.w/2+Math.cos(ca)*200-child.w/2;
+      child.y=pole.y+pole.h/2+Math.sin(ca)*200-child.h/2;
     });
   });
   saveHistory();render();fitView();
 }
 
-// ===== HISTORY =====
+// =========== HISTORY ===========
 function saveHistory(){
   history=history.slice(0,historyIdx+1);
-  history.push(JSON.stringify({nodes,edges}));
-  historyIdx=history.length-1;
-  if(history.length>50)history.shift();
-  saveMap();
+  history.push(JSON.stringify({nodes,edges,frames,textboxes}));
+  historyIdx++;if(history.length>80)history.shift();
+  localStorage.setItem('nexus_mm2',history[historyIdx]);
 }
+function undo(){if(historyIdx>0){historyIdx--;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;frames=d.frames||[];textboxes=d.textboxes||[];render();}}
+function redo(){if(historyIdx<history.length-1){historyIdx++;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;frames=d.frames||[];textboxes=d.textboxes||[];render();}}
 
-document.addEventListener('keydown',e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
-  if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();redo();}
-  if(e.key==='Delete'||e.key==='Backspace'){
-    if(document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA')
-      deleteSelected();
+// =========== SAVE/LOAD ===========
+function saveToFile(){
+  const data=JSON.stringify({nodes,edges,frames,textboxes},null,2);
+  const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
+  a.download='nexus_mindmap_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function loadFromFile(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const d=JSON.parse(ev.target.result);nodes=d.nodes;edges=d.edges;frames=d.frames||[];textboxes=d.textboxes||[];saveHistory();render();fitView();};r.readAsText(f);};input.click();
+}
+function resetMap(){if(!confirm('Réinitialiser la mindmap NEXUS ?'))return;loadDefault();saveHistory();render();fitView();}
+
+// =========== KEYBOARD ===========
+document.addEventListener('keydown',ev=>{
+  const tag=document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')return;
+  if((ev.ctrlKey||ev.metaKey)&&ev.key==='z'){ev.preventDefault();undo();}
+  if((ev.ctrlKey||ev.metaKey)&&ev.key==='y'){ev.preventDefault();redo();}
+  if((ev.ctrlKey||ev.metaKey)&&ev.key==='d'){ev.preventDefault();duplicateSelected();}
+  if((ev.ctrlKey||ev.metaKey)&&ev.key==='a'){ev.preventDefault();nodes.forEach(n=>selectedIds.add(n.id));render();}
+  if(ev.key==='Delete'||ev.key==='Backspace')deleteSelected();
+  if(ev.key==='Escape'){setMode('select');closeSidePanel();closeCtxMenu();}
+  if(ev.key==='v'||ev.key==='V')setMode('select');
+  if(ev.key==='h'||ev.key==='H')setMode('pan');
+  if(ev.key==='n'||ev.key==='N')setMode('add');
+  if(ev.key==='f'||ev.key==='F')setMode('frame');
+  if(ev.key==='t'||ev.key==='T')setMode('text');
+  if(ev.key==='c'||ev.key==='C')setMode('connect');
+  // Arrow keys for nudge
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(ev.key)){
+    const d=ev.shiftKey?10:1;
+    selectedIds.forEach(id=>{const item=getItem(id,null);if(!item)return;
+      if(ev.key==='ArrowLeft')item.x-=d;if(ev.key==='ArrowRight')item.x+=d;
+      if(ev.key==='ArrowUp')item.y-=d;if(ev.key==='ArrowDown')item.y+=d;
+    });render();
   }
-  if(e.key==='Escape'){setMode('select');closeNotePanel();closeCtxMenu();}
 });
 
-function undo(){if(historyIdx>0){historyIdx--;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;render();}}
-function redo(){if(historyIdx<history.length-1){historyIdx++;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;render();}}
-
-// ===== SAVE / LOAD =====
-function saveMap(){localStorage.setItem('nexus_mindmap',JSON.stringify({nodes,edges}));}
-
-function loadMap(){
-  const input=document.createElement('input');input.type='file';input.accept='.json';
-  input.onchange=e=>{
-    const f=e.target.files[0];if(!f)return;
-    const r=new FileReader();r.onload=ev=>{
-      const d=JSON.parse(ev.target.result);nodes=d.nodes;edges=d.edges;saveHistory();render();fitView();
-    };r.readAsText(f);
-  };input.click();
-}
-
-function resetMap(){
-  if(!confirm('Réinitialiser la mindmap NEXUS ? Toutes les modifications seront perdues.'))return;
-  const d=getNexusData();nodes=d.nodes;edges=d.edges;
-  saveHistory();render();fitView();
-}
-
-function exportPNG(){
-  alert('Pour exporter en PNG : Ctrl+Shift+P dans Chrome ou utilisez l\'impression page → Enregistrer en PDF.');
-}
-
-// ===== START =====
-init();
-setMode('select');
+// =========== START ===========
+init();setMode('select');
+window.addEventListener('resize',()=>{updateToolbarHeight();fitView();});
 </script>
 </body>
 </html>
