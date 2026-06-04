@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Réseaux Sociaux</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#09090f;--s1:#0f1018;--s2:#161820;--s3:#1d1f2a;--border:#252835;
+  --text:#eeeef5;--muted:#6a6d88;--dim:#2e3045;
+  --li:#0a66c2;--li-d:rgba(10,102,194,0.12);
+  --ig:#e1306c;--ig-d:rgba(225,48,108,0.12);
+  --fb:#1877f2;--fb-d:rgba(24,119,242,0.12);
+  --accent:#7c6fff;--accent-d:rgba(124,111,255,0.12);
+  --green:#00e5a0;--green-d:rgba(0,229,160,0.1);
+  --gold:#f5b731;--gold-d:rgba(245,183,49,0.1);
+  --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:300;}
+.shell{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.topbar{display:flex;align-items:center;gap:1rem;padding:.85rem 1.5rem;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.topbar-logo{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);}
+.topbar-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;}
+.home-link:hover{border-color:var(--accent);color:var(--accent);}
+.status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green);font-family:var(--mono);margin-left:12px;}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{padding:.65rem 1.2rem;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.main{flex:1;overflow-y:auto;padding:1.5rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-thumb{background:var(--border);}
+.view{display:none;}.view.active{display:block;}
+.sec-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* RÉSEAU TABS */
+.net-tabs{display:flex;gap:8px;margin-bottom:1.25rem;}
+.net-tab{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;}
+.net-tab:hover{border-color:var(--accent);color:var(--accent);}
+.net-tab.li.active{border-color:var(--li);color:var(--li);background:var(--li-d);}
+.net-tab.ig.active{border-color:var(--ig);color:var(--ig);background:var(--ig-d);}
+.net-tab.fb.active{border-color:var(--fb);color:var(--fb);background:var(--fb-d);}
+.net-dot{width:8px;height:8px;border-radius:50%;}
+
+/* FORM */
+.form-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.fi,.fs{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:var(--body);}
+.fi:focus,.fs:focus{border-color:var(--accent);}
+.fs option{background:var(--s2);}
+.fi-area{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:var(--body);width:100%;min-height:80px;resize:vertical;transition:border-color .15s;line-height:1.6;}
+.fi-area:focus{border-color:var(--accent);}
+.btn-gen{padding:9px 20px;background:var(--accent-d);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;font-weight:500;}
+.btn-gen:hover{background:var(--accent);color:var(--bg);}
+.btn-gen:disabled{opacity:.4;cursor:not-allowed;}
+
+/* POST RESULT */
+.post-result{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;display:none;}
+.post-result.visible{display:block;}
+.post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.post-network{font-family:var(--mono);font-size:11px;font-weight:700;}
+.post-actions{display:flex;gap:6px;}
+.btn-copy{padding:5px 12px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;}
+.btn-copy:hover{border-color:var(--green);color:var(--green);}
+.btn-copy.copied{border-color:var(--green);color:var(--green);background:var(--green-d);}
+.btn-save-post{padding:5px 12px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;}
+.btn-save-post:hover{border-color:var(--gold);color:var(--gold);}
+.post-content{font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap;background:var(--s2);border-radius:6px;padding:1rem;}
+.post-meta{display:flex;gap:12px;margin-top:.75rem;flex-wrap:wrap;}
+.post-tag{font-size:10px;font-family:var(--mono);color:var(--muted);background:var(--s3);padding:2px 8px;border-radius:4px;}
+
+/* TYPING */
+.typing-row{display:flex;align-items:center;gap:8px;padding:.75rem 1rem;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--s1);border:1px solid var(--border);border-radius:10px;margin-bottom:1.25rem;display:none;}
+.typing-row.visible{display:flex;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* CALENDRIER */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:1.25rem;}
+.cal-day-label{text-align:center;font-family:var(--mono);font-size:9px;color:var(--muted);padding:4px 0;}
+.cal-day{min-height:70px;background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:5px;cursor:pointer;transition:border-color .15s;}
+.cal-day:hover{border-color:var(--accent);}
+.cal-day.today{border-color:var(--accent);}
+.cal-day.other-month{opacity:.3;}
+.cal-day-num{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:3px;}
+.cal-post-dot{width:100%;font-size:9px;padding:2px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.cal-post-dot.li{background:var(--li-d);color:var(--li);}
+.cal-post-dot.ig{background:var(--ig-d);color:var(--ig);}
+.cal-post-dot.fb{background:var(--fb-d);color:var(--fb);}
+.cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.cal-nav-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--muted);cursor:pointer;padding:3px 8px;font-size:14px;}
+.cal-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.cal-month-label{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:130px;}
+
+/* BANQUE IDÉES */
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;}
+.idea-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1rem;cursor:pointer;transition:all .15s;}
+.idea-card:hover{border-color:var(--accent);background:var(--s2);}
+.idea-net{font-size:10px;font-family:var(--mono);margin-bottom:6px;}
+.idea-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4;}
+.idea-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.idea-use{margin-top:8px;font-size:10px;color:var(--accent);font-family:var(--mono);}
+
+/* POSTS SAUVEGARDÉS */
+.saved-posts{display:flex;flex-direction:column;gap:8px;}
+.saved-post{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.saved-post-head{display:flex;align-items:center;gap:8px;padding:.75rem 1rem;border-bottom:1px solid var(--border);}
+.saved-post-body{padding:.85rem 1rem;font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--text);}
+.saved-post-meta{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.del-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;margin-left:auto;}
+.del-btn:hover{color:var(--red);}
+--red:#ff4f6a;
+.empty{text-align:center;padding:2.5rem;color:var(--muted);font-family:var(--mono);font-size:11px;}
+
+/* ANALYSE */
+.analyse-chat{display:flex;flex-direction:column;height:calc(100vh - 200px);}
+.a-chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:.75rem;scrollbar-width:thin;}
+.a-msg{display:flex;gap:8px;align-items:flex-start;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.a-msg.user{flex-direction:row-reverse;}
+.a-av{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;border:1px solid var(--border);background:var(--s2);}
+.a-av.agent{background:var(--accent-d);border-color:var(--accent);}
+.a-bub{max-width:82%;padding:9px 13px;border-radius:8px;font-size:13px;line-height:1.7;border:1px solid var(--border);background:var(--s1);color:var(--text);white-space:pre-wrap;}
+.a-msg.user .a-bub{background:var(--accent-d);border-color:var(--accent);color:var(--accent);}
+.a-bub strong{font-weight:500;}
+.typing-b{display:flex;gap:3px;align-items:center;padding:9px 13px;}
+.td{width:4px;height:4px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+.a-quick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem;}
+.a-qbtn{font-size:10px;padding:3px 10px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s;}
+.a-qbtn:hover{border-color:var(--accent);color:var(--accent);}
+.a-input-row{display:flex;gap:6px;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);}
+.a-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--body);font-size:13px;outline:none;}
+.a-input:focus{border-color:var(--accent);}
+.a-send{padding:8px 14px;background:var(--accent-d);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;}
+.a-send:hover{background:var(--accent);color:var(--bg);}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">RÉSEAUX SOCIAUX // v1.0</div>
+      <div class="topbar-sub">LinkedIn · Instagram · Facebook · Climatisation embarquée</div>
+    </div>
+    <a class="home-link" href="index.html">← ACCUEIL</a>
+    <div class="status"><div class="sdot"></div>ACTIF</div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showView('redaction')">RÉDACTION</button>
+    <button class="nav-btn" onclick="showView('calendrier')">CALENDRIER</button>
+    <button class="nav-btn" onclick="showView('idees')">BANQUE D'IDÉES</button>
+    <button class="nav-btn" onclick="showView('sauvegardes')">SAUVEGARDÉS <span id="savedCount"></span></button>
+    <button class="nav-btn" onclick="showView('analyse')">STRATÉGIE IA</button>
+  </div>
+  <div class="main">
+
+    <!-- RÉDACTION -->
+    <div class="view active" id="view-redaction">
+      <div class="net-tabs" id="netTabs">
+        <button class="net-tab li active" onclick="setNetwork('li',this)"><div class="net-dot" style="background:var(--li)"></div>LinkedIn</button>
+        <button class="net-tab ig" onclick="setNetwork('ig',this)"><div class="net-dot" style="background:var(--ig)"></div>Instagram</button>
+        <button class="net-tab fb" onclick="setNetwork('fb',this)"><div class="net-dot" style="background:var(--fb)"></div>Facebook</button>
+      </div>
+      <div class="sec-title">NOUVEAU POST</div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">TYPE DE POST</label>
+            <select class="fs" id="postType">
+              <option value="expertise">Partage d'expertise technique</option>
+              <option value="terrain">Retour terrain / chantier</option>
+              <option value="formation">Progression formation</option>
+              <option value="conseil">Conseil pratique</option>
+              <option value="actu">Actualité du secteur</option>
+              <option value="personnel">Parcours personnel</option>
+              <option value="question">Question à la communauté</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">TON</label>
+            <select class="fs" id="postTone">
+              <option value="professionnel">Professionnel et crédible</option>
+              <option value="pedagogique">Pédagogique</option>
+              <option value="authentique">Authentique / personnel</option>
+              <option value="storytelling">Storytelling</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label class="fl">SUJET OU IDÉE DE BASE (optionnel)</label>
+          <textarea class="fi-area" id="postIdea" placeholder="Ex: Aujourd'hui j'ai diagnostiqué une panne de compresseur sur un camion Thermoking SL400, voilà ce que j'ai appris...&#10;Ou laisse vide pour que l'agent génère une idée selon le type choisi."></textarea>
+        </div>
+        <button class="btn-gen" id="btnGen" onclick="generatePost()">⚡ GÉNÉRER LE POST</button>
+      </div>
+
+      <div class="typing-row" id="typingRow">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span>Rédaction en cours...</span>
+      </div>
+
+      <div class="post-result" id="postResult">
+        <div class="post-header">
+          <div class="post-network" id="postNetworkLabel"></div>
+          <div class="post-actions">
+            <button class="btn-copy" id="btnCopy" onclick="copyPost()">📋 Copier</button>
+            <button class="btn-save-post" onclick="savePost()">⭐ Sauvegarder</button>
+            <button class="btn-gen" style="padding:5px 12px;font-size:10px;" onclick="generatePost()">↻ Régénérer</button>
+          </div>
+        </div>
+        <div class="post-content" id="postContent"></div>
+        <div class="post-meta" id="postMeta"></div>
+      </div>
+    </div>
+
+    <!-- CALENDRIER -->
+    <div class="view" id="view-calendrier">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+        <button class="btn-gen" style="margin-left:auto;padding:6px 14px;font-size:10px;" onclick="addCalPost()">+ Planifier un post</button>
+      </div>
+      <div class="cal-grid" id="calDayLabels"></div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <!-- MODAL AJOUT POST CAL -->
+      <div id="calModal" style="display:none;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:1rem;">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:1rem;">PLANIFIER UN POST</div>
+        <div class="form-grid">
+          <div class="fg"><label class="fl">DATE</label><input class="fi" type="date" id="calDate"/></div>
+          <div class="fg"><label class="fl">RÉSEAU</label>
+            <select class="fs" id="calNetwork">
+              <option value="li">LinkedIn</option>
+              <option value="ig">Instagram</option>
+              <option value="fb">Facebook</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label class="fl">SUJET DU POST</label>
+          <input class="fi" id="calSubject" placeholder="Ex: Maintenance préventive Thermoking..."/>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-gen" onclick="saveCalPost()">Planifier</button>
+          <button style="padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;" onclick="document.getElementById('calModal').style.display='none'">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANQUE D'IDÉES -->
+    <div class="view" id="view-idees">
+      <div class="sec-title">IDÉES DE CONTENU PAR RÉSEAU</div>
+      <div class="ideas-grid" id="ideasGrid"></div>
+    </div>
+
+    <!-- SAUVEGARDÉS -->
+    <div class="view" id="view-sauvegardes">
+      <div class="sec-title">POSTS SAUVEGARDÉS</div>
+      <div class="saved-posts" id="savedPosts"></div>
+    </div>
+
+    <!-- STRATÉGIE IA -->
+    <div class="view" id="view-analyse">
+      <div class="analyse-chat">
+        <div class="a-quick">
+          <button class="a-qbtn" onclick="aQ('Quelle stratégie de contenu pour construire ma réputation de technicien clim ?')">→ stratégie globale</button>
+          <button class="a-qbtn" onclick="aQ('À quelle fréquence publier sur chaque réseau ?')">→ fréquence idéale</button>
+          <button class="a-qbtn" onclick="aQ('Quels hashtags utiliser dans ma niche climatisation embarquée ?')">→ hashtags</button>
+          <button class="a-qbtn" onclick="aQ('Comment différencier mon contenu LinkedIn vs Instagram vs Facebook ?')">→ différenciation réseaux</button>
+          <button class="a-qbtn" onclick="aQ('Comment préparer ma présence en ligne pour mon futur projet entrepreneurial ?')">→ préparer l\'entreprise</button>
+        </div>
+        <div class="a-chat" id="aChat"></div>
+        <div class="a-input-row">
+          <input class="a-input" id="aInp" placeholder="Ta question stratégique..." onkeydown="if(event.key==='Enter')aSend()"/>
+          <button class="a-send" onclick="aSend()">ENVOYER →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JOURS=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+const NET_LABELS={li:'LinkedIn',ig:'Instagram',fb:'Facebook'};
+const NET_COLORS={li:'var(--li)',ig:'var(--ig)',fb:'var(--fb)'};
+
+let curNetwork='li';
+let calMonth=new Date().getMonth(),calYear=new Date().getFullYear();
+let lastPost='',lastPostNetwork='';
+let aHistory=[];
+let store=JSON.parse(localStorage.getItem('reseaux_v1')||'{"posts":[],"calendar":[]}');
+function vsave(){localStorage.setItem('reseaux_v1',JSON.stringify(store));}
+
+async function callAPI(body){
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json();return d.content?.find(b=>b.type==='text')?.text||'';
+}
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const map={redaction:'RÉDA',calendrier:'CALEN',idees:'BANQUE',sauvegardes:'SAUV',analyse:'STRAT'};
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.includes(map[v]))b.classList.add('active');});
+  if(v==='calendrier')renderCal();
+  if(v==='idees')renderIdeas();
+  if(v==='sauvegardes')renderSaved();
+  if(v==='analyse'&&!aHistory.length)aWelcome();
+}
+
+function setNetwork(net,btn){
+  curNetwork=net;
+  document.querySelectorAll('.net-tab').forEach(b=>{b.classList.remove('active');});
+  btn.classList.add('active');
+}
+
+function getNetworkSystem(net){
+  const base=`Tu es un expert en stratégie de contenu pour les réseaux sociaux professionnels, spécialisé dans les métiers techniques. 
+Profil utilisateur : Evan, technicien en formation climatisation embarquée sur véhicules lourds (camions, bus), formation chez Frigicoll (distributeur officiel Thermoking/Frigoking) à El Prat de Llobregat, Barcelone. Objectif : construire une réputation d'expert clim embarquée pour trouver des clients freelance et préparer le terrain pour une structure type distributeur agréé Thermoking.`;
+
+  const nets={
+    li:`${base}
+RÉSEAU : LinkedIn
+Ton : professionnel, expert, crédible. Montre la maîtrise technique sans jargon excessif.
+Format : 150-300 mots. Commence fort (accroche sur la 1ère ligne visible). Structure en paragraphes courts. 3-5 hashtags professionnels pertinents (#climatisation #thermoking #frigoriste #maintenanceindustrielle #véhiculeslourd). Appel à l'action discret en fin.
+Évite : les émojis excessifs, le ton trop commercial, les platitudes.`,
+    ig:`${base}
+RÉSEAU : Instagram
+Ton : authentique, visuel, accessible. Montre les coulisses du métier, les apprentissages, la passion.
+Format : caption 100-200 mots max. Commence par une phrase impactante. Utilise des émojis avec parcimonie. 10-15 hashtags mélangés (niche + large) : #thermoking #frigoriste #mechaniclife #trucklife #climatisation #technicienauto etc. Suggère le type de visuel/photo à associer au post.
+Évite : le trop corporate, les posts sans personnalité.`,
+    fb:`${base}
+RÉSEAU : Facebook
+Ton : communautaire, humain, partage d'expérience. Plus conversationnel que LinkedIn.
+Format : 100-250 mots. Storytelling simple. Question en fin pour encourager les commentaires. 3-5 hashtags max. Peut inclure une anecdote terrain.
+Évite : le trop formel, le trop technique sans explication.`
+  };
+  return nets[net];
+}
+
+async function generatePost(){
+  const type=document.getElementById('postType').value;
+  const tone=document.getElementById('postTone').value;
+  const idea=document.getElementById('postIdea').value.trim();
+  const btn=document.getElementById('btnGen');
+
+  btn.disabled=true;
+  document.getElementById('typingRow').classList.add('visible');
+  document.getElementById('postResult').classList.remove('visible');
+
+  const typeLabels={expertise:'partage d\'expertise technique',terrain:'retour terrain/chantier',formation:'progression formation',conseil:'conseil pratique',actu:'actualité du secteur',personnel:'parcours personnel',question:'question à la communauté'};
+  const toneLabels={professionnel:'professionnel et crédible',pedagogique:'pédagogique',authentique:'authentique/personnel',storytelling:'storytelling'};
+
+  const prompt=`Rédige un post ${NET_LABELS[curNetwork]} de type "${typeLabels[type]}", ton "${toneLabels[tone]}".${idea?`\nIdée de base : ${idea}`:''}
+Génère un post complet prêt à publier. Ne mets pas de titre, commence directement par le contenu du post. À la fin, sur une ligne séparée commençant par "META:", indique le nombre de mots estimé et le meilleur moment pour publier ce type de contenu.`;
+
+  try{
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:800,system:getNetworkSystem(curNetwork),messages:[{role:'user',content:prompt}]});
+    lastPost=reply;lastPostNetwork=curNetwork;
+    const parts=reply.split('META:');
+    document.getElementById('postContent').textContent=parts[0].trim();
+    document.getElementById('postMeta').innerHTML=parts[1]?parts[1].trim().split('|').map(m=>`<div class="post-tag">${m.trim()}</div>`).join(''):'';
+    document.getElementById('postNetworkLabel').textContent=NET_LABELS[curNetwork];
+    document.getElementById('postNetworkLabel').style.color=NET_COLORS[curNetwork];
+    document.getElementById('postResult').classList.add('visible');
+    document.getElementById('btnCopy').textContent='📋 Copier';
+    document.getElementById('btnCopy').classList.remove('copied');
+  }catch(e){alert('Erreur : '+e.message);}
+
+  document.getElementById('typingRow').classList.remove('visible');
+  btn.disabled=false;
+}
+
+function copyPost(){
+  const content=document.getElementById('postContent').textContent;
+  navigator.clipboard.writeText(content).then(()=>{
+    const btn=document.getElementById('btnCopy');
+    btn.textContent='✓ Copié !';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 Copier';btn.classList.remove('copied');},2000);
+  });
+}
+
+function savePost(){
+  const content=document.getElementById('postContent').textContent;
+  if(!content)return;
+  store.posts.push({id:Date.now(),network:lastPostNetwork,content,savedAt:new Date().toISOString(),type:document.getElementById('postType').value});
+  vsave();updateSavedCount();
+  const btn=document.querySelector('.btn-save-post');btn.textContent='✓ Sauvegardé';
+  setTimeout(()=>{btn.textContent='⭐ Sauvegarder';},2000);
+}
+
+function updateSavedCount(){const el=document.getElementById('savedCount');el.textContent=store.posts.length?`(${store.posts.length})`:'';  }
+
+/* CALENDRIER */
+function changeCalMonth(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+function renderCal(){
+  document.getElementById('calMonthLabel').textContent=MONTHS[calMonth]+' '+calYear;
+  const labels=document.getElementById('calDayLabels');
+  labels.innerHTML=JOURS.map(j=>`<div class="cal-day-label">${j}</div>`).join('');
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const offset=firstDay===0?6:firstDay-1;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+
+  for(let i=0;i<offset;i++){
+    const d=document.createElement('div');d.className='cal-day other-month';grid.appendChild(d);
+  }
+  for(let i=1;i<=daysInMonth;i++){
+    const d=document.createElement('div');
+    const isToday=i===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    d.className='cal-day'+(isToday?' today':'');
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+    const dayPosts=store.calendar.filter(p=>p.date===dateStr);
+    d.innerHTML=`<div class="cal-day-num">${i}</div>${dayPosts.map(p=>`<div class="cal-post-dot ${p.network}" title="${p.subject}">${NET_LABELS[p.network][0]} · ${p.subject.slice(0,15)}...</div>`).join('')}`;
+    d.onclick=()=>{document.getElementById('calDate').value=dateStr;document.getElementById('calModal').style.display='block';};
+    grid.appendChild(d);
+  }
+}
+
+function addCalPost(){document.getElementById('calDate').valueAsDate=new Date();document.getElementById('calModal').style.display='block';}
+function saveCalPost(){
+  const date=document.getElementById('calDate').value;
+  const network=document.getElementById('calNetwork').value;
+  const subject=document.getElementById('calSubject').value.trim();
+  if(!date||!subject)return;
+  store.calendar.push({id:Date.now(),date,network,subject});
+  vsave();document.getElementById('calModal').style.display='none';document.getElementById('calSubject').value='';
+  renderCal();
+}
+
+/* BANQUE D'IDÉES */
+const IDEAS=[
+  {net:'li',title:'Le diagnostic qui m\'a tout appris',desc:'Raconte une panne complexe Thermoking, ce que tu as cherché, et la leçon retenue.',use:'Expertise + storytelling'},
+  {net:'li',title:'5 erreurs courantes en maintenance préventive clim embarquée',desc:'Liste les erreurs que tu vois sur le terrain, avec la bonne pratique pour chacune.',use:'Contenu à forte valeur'},
+  {net:'li',title:'Pourquoi la clim embarquée est un secteur d\'avenir',desc:'Croissance du transport réfrigéré, demande en techniciens, opportunités freelance.',use:'Positionnement expert'},
+  {net:'li',title:'De la restauration à la climatisation embarquée',desc:'Ton parcours de reconversion, les compétences transférables, la décision de changer.',use:'Authenticité + inspiration'},
+  {net:'li',title:'Ce que j\'ai appris en une semaine chez Frigicoll',desc:'Retour d\'expérience formation, techniques spécifiques, culture du métier.',use:'Progression + crédibilité'},
+  {net:'ig',title:'Dans les coulisses du taller',desc:'Photo du poste de travail, des outils, d\'une unité Thermoking en cours de réparation.',use:'Authenticité visuelle'},
+  {net:'ig',title:'Avant / Après réparation',desc:'Photo d\'un composant défectueux vs réparé. Court texte sur ce qui s\'est passé.',use:'Expertise visible'},
+  {net:'ig',title:'Le saviez-vous ? Série clim embarquée',desc:'Une info technique surprising sur le cycle frigorifique ou les fluides, expliquée simplement.',use:'Éducatif + partages'},
+  {net:'ig',title:'Mon parcours en photos',desc:'Photos de formation, du taller, des équipements — documenter la progression.',use:'Personal branding'},
+  {net:'fb',title:'Question à la communauté',desc:'Pose une question technique ouverte aux autres techniciens — crée de l\'engagement.',use:'Communauté + réseau'},
+  {net:'fb',title:'Retour d\'expérience client',desc:'Un client satisfait après une intervention freelance — partage l\'histoire (anonymisée).',use:'Social proof'},
+  {net:'fb',title:'Conseil pratique du mois',desc:'Un conseil d\'entretien clim embarquée accessible aux chauffeurs/transporteurs.',use:'Valeur + audience pro'},
+];
+
+function renderIdeas(){
+  document.getElementById('ideasGrid').innerHTML=IDEAS.map(idea=>`
+    <div class="idea-card" onclick="useIdea('${idea.title}','${idea.net}')">
+      <div class="idea-net" style="color:${NET_COLORS[idea.net]};">${NET_LABELS[idea.net].toUpperCase()}</div>
+      <div class="idea-title">${idea.title}</div>
+      <div class="idea-desc">${idea.desc}</div>
+      <div class="idea-use">→ ${idea.use} · Cliquer pour utiliser</div>
+    </div>`).join('');
+}
+
+function useIdea(title,net){
+  document.getElementById('postIdea').value=title;
+  curNetwork=net;
+  document.querySelectorAll('.net-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.net-tab.${net}`).classList.add('active');
+  showView('redaction');
+}
+
+/* SAUVEGARDÉS */
+function renderSaved(){
+  const el=document.getElementById('savedPosts');
+  if(!store.posts.length){el.innerHTML='<div class="empty">Aucun post sauvegardé.</div>';return;}
+  el.innerHTML=[...store.posts].reverse().map(p=>`
+    <div class="saved-post">
+      <div class="saved-post-head">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:700;color:${NET_COLORS[p.network]};">${NET_LABELS[p.network]}</div>
+        <div class="saved-post-meta">${new Date(p.savedAt).toLocaleDateString('fr-FR')}</div>
+        <button style="padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;cursor:pointer;margin-left:8px;" onclick="copyText('${p.id}')">📋</button>
+        <button class="del-btn" onclick="delPost(${p.id})">×</button>
+      </div>
+      <div class="saved-post-body" id="post_${p.id}">${p.content}</div>
+    </div>`).join('');
+}
+function copyText(id){const el=document.getElementById('post_'+id);if(el)navigator.clipboard.writeText(el.textContent);}
+function delPost(id){store.posts=store.posts.filter(p=>p.id!==id);vsave();renderSaved();updateSavedCount();}
+
+/* STRATÉGIE IA */
+function aWelcome(){addAMsg('agent',`**Stratège réseaux sociaux actif.**\n\nJe connais ton positionnement : technicien climatisation embarquée en formation chez Frigicoll, objectif freelance + future structure distributeur Thermoking.\n\nJe peux t'aider sur la stratégie globale, la fréquence de publication, les hashtags, ou tout autre aspect de ta présence en ligne.\n\nPar où tu veux commencer ?`);}
+
+function addAMsg(role,html){
+  const chat=document.getElementById('aChat');
+  const div=document.createElement('div');div.className='a-msg '+(role==='user'?'user':'');
+  const av=document.createElement('div');av.className='a-av '+(role==='agent'?'agent':'');av.textContent=role==='user'?'E':'📱';
+  const bub=document.createElement('div');bub.className='a-bub';
+  bub.innerHTML=html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
+}
+function addATyping(){const chat=document.getElementById('aChat');const div=document.createElement('div');div.className='a-msg';div.id='aTyping';const av=document.createElement('div');av.className='a-av agent';av.textContent='📱';const bub=document.createElement('div');bub.className='a-bub';bub.innerHTML='<div class="typing-b"><div class="td"></div><div class="td"></div><div class="td"></div></div>';div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;}
+
+async function aSend(){
+  const inp=document.getElementById('aInp');const text=inp.value.trim();
+  if(!text||document.getElementById('aTyping'))return;
+  inp.value='';addAMsg('user',text);aHistory.push({role:'user',content:text});addATyping();
+  const sys=`Tu es un expert en stratégie de personal branding et réseaux sociaux pour les métiers techniques. Evan est technicien en formation climatisation embarquée (Frigicoll/Thermoking, El Prat, Barcelone), objectif : réputation freelance + future structure distributeur. Il gère LinkedIn, Instagram et Facebook. Conseils précis, actionnables, jamais de flatterie. Français uniquement.`;
+  try{
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:aHistory});
+    document.getElementById('aTyping')?.remove();addAMsg('agent',reply);aHistory.push({role:'assistant',content:reply});
+  }catch(e){document.getElementById('aTyping')?.remove();addAMsg('agent','Erreur : '+e.message);}
+}
+function aQ(t){document.getElementById('aInp').value=t;aSend();}
+
+// INIT
+updateSavedCount();
+renderCal();
+document.getElementById('calDate').valueAsDate=new Date();
+</script>
+</body>
+</html>
