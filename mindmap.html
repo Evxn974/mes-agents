@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mindmap — NEXUS Holding</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f8f9fc;--s1:#ffffff;--s2:#f0f2f7;--border:#d8dce8;
+  --text:#1a1d2e;--muted:#5a6080;--dim:#9095b0;
+  --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden;}
+
+/* TOOLBAR */
+.toolbar{position:fixed;top:0;left:0;right:0;height:50px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:4px;padding:0 12px;z-index:100;flex-wrap:nowrap;overflow-x:auto;}
+.toolbar::-webkit-scrollbar{display:none;}
+.t-logo{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);margin-right:8px;white-space:nowrap;}
+.t-sep{width:1px;height:24px;background:var(--border);margin:0 6px;flex-shrink:0;}
+.t-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--body);transition:all .15s;}
+.t-btn:hover{background:var(--s2);color:var(--text);border-color:var(--dim);}
+.t-btn.active{background:var(--text);color:var(--s1);border-color:var(--text);}
+.t-btn.danger:hover{border-color:#ef4444;color:#ef4444;}
+.t-select{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--s1);color:var(--text);font-size:11px;outline:none;cursor:pointer;font-family:var(--body);}
+.t-color{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;}
+.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;flex-shrink:0;}
+.home-link:hover{border-color:var(--text);color:var(--text);}
+
+/* CANVAS */
+.canvas-wrap{position:fixed;top:50px;left:0;right:0;bottom:0;overflow:hidden;background:var(--bg);cursor:grab;}
+.canvas-wrap.grabbing{cursor:grabbing;}
+.canvas-wrap.adding{cursor:crosshair;}
+#canvas{position:absolute;top:0;left:0;transform-origin:0 0;}
+
+/* NODES */
+.node{position:absolute;border-radius:10px;padding:8px 14px;cursor:pointer;user-select:none;border:2px solid transparent;transition:box-shadow .15s,border-color .15s;min-width:100px;max-width:200px;text-align:center;}
+.node:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.node.selected{border-color:rgba(0,0,0,.3)!important;box-shadow:0 0 0 3px rgba(0,0,0,.08);}
+.node-label{font-size:12px;font-weight:500;line-height:1.3;pointer-events:none;}
+.node-sub{font-size:10px;opacity:.75;margin-top:2px;line-height:1.3;pointer-events:none;}
+.node.center{border-radius:50%;width:120px;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;}
+.node.pole{border-radius:12px;padding:10px 16px;}
+
+/* EDIT INPUT */
+.node-edit{position:absolute;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:500;border:2px solid rgba(0,0,0,.3);outline:none;text-align:center;background:rgba(255,255,255,.95);min-width:100px;max-width:200px;font-family:var(--body);resize:none;}
+
+/* CONTEXT MENU */
+.ctx-menu{position:fixed;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:180px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.ctx-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--text);}
+.ctx-item:hover{background:var(--s2);}
+.ctx-item.danger{color:#ef4444;}
+.ctx-item.danger:hover{background:#fef2f2;}
+.ctx-sep{height:1px;background:var(--border);margin:4px 0;}
+
+/* NOTE PANEL */
+.note-panel{position:fixed;right:0;top:50px;bottom:0;width:300px;background:var(--s1);border-left:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;gap:10px;transform:translateX(100%);transition:transform .25s;z-index:90;}
+.note-panel.open{transform:translateX(0);}
+.note-title{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
+.note-field{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--body);background:var(--bg);color:var(--text);outline:none;resize:none;flex:1;}
+.note-field:focus{border-color:var(--dim);}
+.note-save{padding:7px 14px;border:1px solid var(--border);border-radius:6px;background:var(--text);color:var(--s1);font-size:11px;cursor:pointer;font-family:var(--mono);}
+.note-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;margin-left:auto;}
+
+/* MINIMAP */
+.minimap{position:fixed;bottom:16px;right:16px;width:160px;height:100px;background:var(--s1);border:1px solid var(--border);border-radius:8px;overflow:hidden;z-index:80;}
+.minimap canvas{width:100%;height:100%;}
+
+/* ZOOM */
+.zoom-info{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);z-index:80;}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--text);color:var(--s1);border-radius:6px;padding:4px 8px;font-size:11px;pointer-events:none;z-index:300;display:none;}
+</style>
+</head>
+<body>
+
+<div class="toolbar" id="toolbar">
+  <div class="t-logo">✦ NEXUS MINDMAP</div>
+  <div class="t-sep"></div>
+  <button class="t-btn" onclick="setMode('select')" id="btn-select" title="Sélectionner">↖ Sélect.</button>
+  <button class="t-btn" onclick="setMode('add')" id="btn-add" title="Ajouter un nœud">+ Nœud</button>
+  <button class="t-btn" onclick="setMode('connect')" id="btn-connect" title="Connecter">⟶ Lien</button>
+  <div class="t-sep"></div>
+  <button class="t-btn" onclick="deleteSelected()" class="danger" title="Supprimer">🗑 Suppr.</button>
+  <button class="t-btn" onclick="duplicateSelected()" title="Dupliquer">⧉ Dupli.</button>
+  <div class="t-sep"></div>
+  <select class="t-select" id="nodeShape" onchange="changeShape(this.value)" title="Forme">
+    <option value="rect">Rectangle</option>
+    <option value="rounded">Arrondi</option>
+    <option value="circle">Cercle</option>
+    <option value="pill">Pilule</option>
+  </select>
+  <select class="t-select" id="fontSize" onchange="changeFontSize(this.value)" title="Taille texte">
+    <option value="10">10px</option>
+    <option value="11">11px</option>
+    <option value="12" selected>12px</option>
+    <option value="14">14px</option>
+    <option value="16">16px</option>
+    <option value="18">18px</option>
+  </select>
+  <div class="t-sep"></div>
+  <label style="font-size:11px;color:var(--muted);white-space:nowrap;">Fond:</label>
+  <input type="color" class="t-color" id="bgColor" onchange="changeNodeBg(this.value)" value="#3b82f6">
+  <label style="font-size:11px;color:var(--muted);white-space:nowrap;">Texte:</label>
+  <input type="color" class="t-color" id="textColor" onchange="changeNodeText(this.value)" value="#ffffff">
+  <div class="t-sep"></div>
+  <button class="t-btn" onclick="autoLayout()" title="Réorganiser automatiquement">⊞ Auto-layout</button>
+  <button class="t-btn" onclick="fitView()" title="Ajuster la vue">⊡ Fit</button>
+  <button class="t-btn" onclick="zoomIn()">+ Zoom</button>
+  <button class="t-btn" onclick="zoomOut()">− Zoom</button>
+  <div class="t-sep"></div>
+  <button class="t-btn" onclick="exportPNG()" title="Exporter PNG">↓ PNG</button>
+  <button class="t-btn" onclick="saveMap()" title="Sauvegarder">💾 Sauv.</button>
+  <button class="t-btn" onclick="loadMap()" title="Charger">📂 Charger</button>
+  <button class="t-btn" onclick="resetMap()" title="Réinitialiser la carte NEXUS">↺ Reset</button>
+  <a class="home-link" href="index.html">← ACCUEIL</a>
+</div>
+
+<div class="canvas-wrap" id="canvasWrap">
+  <div id="canvas">
+    <svg id="svgLayer" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible;"></svg>
+  </div>
+</div>
+
+<div class="note-panel" id="notePanel">
+  <div style="display:flex;align-items:center;">
+    <div class="note-title" id="notePanelTitle">Notes</div>
+    <button class="note-close" onclick="closeNotePanel()">✕</button>
+  </div>
+  <input class="note-field" id="noteNodeLabel" placeholder="Libellé du nœud" style="flex:none;height:36px;resize:none;"/>
+  <input class="note-field" id="noteNodeSub" placeholder="Sous-titre (optionnel)" style="flex:none;height:36px;resize:none;"/>
+  <textarea class="note-field" id="noteContent" placeholder="Notes, idées, liens, statut..."></textarea>
+  <button class="note-save" onclick="saveNote()">Enregistrer</button>
+</div>
+
+<div class="zoom-info" id="zoomInfo">100%</div>
+<div class="ctx-menu" id="ctxMenu" style="display:none;"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ===== STATE =====
+let nodes=[], edges=[], selectedIds=new Set(), mode='select';
+let scale=1, panX=300, panY=300;
+let isPanning=false, panStart={x:0,y:0};
+let dragNode=null, dragOffset={x:0,y:0};
+let connectStart=null;
+let noteNodeId=null;
+let history=[], historyIdx=-1;
+
+const canvas=document.getElementById('canvas');
+const svg=document.getElementById('svgLayer');
+const wrap=document.getElementById('canvasWrap');
+
+// ===== NEXUS DATA =====
+function getNexusData(){
+  const cx=1200,cy=800;
+  const nodes=[
+    // CENTER
+    {id:'center',x:cx-60,y:cy-60,w:120,h:120,label:'NEXUS',sub:'Holding',bg:'#1a1d2e',color:'#ffffff',shape:'circle',fontSize:14,notes:''},
+    // POLES
+    {id:'p-auto',x:cx+150,y:cy-200,w:160,h:55,label:'Pôle Auto & Mobilité',sub:'',bg:'#2563eb',color:'#fff',shape:'pole',fontSize:12,notes:''},
+    {id:'p-transport',x:cx+150,y:cy+80,w:160,h:55,label:'Pôle Transport & Logistique',sub:'',bg:'#16a34a',color:'#fff',shape:'pole',fontSize:11,notes:''},
+    {id:'p-immo',x:cx-80,y:cy+250,w:160,h:55,label:'Pôle Immobilier & Construction',sub:'',bg:'#ca8a04',color:'#fff',shape:'pole',fontSize:11,notes:''},
+    {id:'p-secu',x:cx-350,y:cy-200,w:160,h:55,label:'Pôle Défense & Sécurité',sub:'',bg:'#dc2626',color:'#fff',shape:'pole',fontSize:12,notes:''},
+    {id:'p-divert',x:cx-80,y:cy-320,w:160,h:55,label:'Pôle Divertissement & Expérience',sub:'',bg:'#ea580c',color:'#fff',shape:'pole',fontSize:10,notes:''},
+    {id:'p-luxe',x:cx+150,y:cy-450,w:160,h:55,label:'Pôle Luxe & Lifestyle',sub:'',bg:'#9333ea',color:'#fff',shape:'pole',fontSize:12,notes:''},
+    // AUTO
+    {id:'palm',x:cx+380,y:cy-380,w:150,h:45,label:'Palm Motors',sub:'Import/export auto',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'concess',x:cx+380,y:cy-320,w:150,h:45,label:'Concessionnaire',sub:'Vente véhicule premium',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'convoyage',x:cx+380,y:cy-260,w:150,h:45,label:'Transport véhicule',sub:'Convoyage & livraison premium',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'course',x:cx+380,y:cy-200,w:150,h:45,label:'Course automobile',sub:'Écurie, rallyes & circuits',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'garage',x:cx+380,y:cy-140,w:150,h:45,label:'Garage automobile',sub:'Réparation & préparation',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'collection',x:cx+380,y:cy-80,w:150,h:45,label:'Collection automobile',sub:'Collection privée & rareté',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'location-auto',x:cx+380,y:cy-20,w:150,h:45,label:'Location automobile',sub:'Longue & courte durée',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'paris-auto',x:cx+380,y:cy+40,w:150,h:45,label:'Paris automobile',sub:'Paris sportif automobile',bg:'#3b82f6',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // TRANSPORT
+    {id:'carga-express',x:cx+380,y:cy+120,w:150,h:45,label:'Carga Express',sub:'Convoyage de véhicules',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'carga-clean',x:cx+380,y:cy+180,w:150,h:45,label:'Carga Pro Clean',sub:'Nettoyage de véhicules',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'transport-secu',x:cx+380,y:cy+240,w:150,h:45,label:'Transport sécurisé',sub:'Transport sous protection',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'logistique',x:cx+380,y:cy+300,w:150,h:45,label:'Logistique',sub:'Stockage & entreposage sécurisé',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'conciergerie-t',x:cx+380,y:cy+360,w:150,h:45,label:'Conciergerie transport',sub:'Service sur mesure',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'reseau-log',x:cx+380,y:cy+420,w:150,h:45,label:'Réseau logistique',sub:'Couverture & partenaires',bg:'#22c55e',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // IMMO
+    {id:'agence-immo',x:cx-60,y:cy+380,w:150,h:45,label:'Agence immobilière',sub:'Achat, vente, location',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'btp',x:cx-220,y:cy+380,w:150,h:45,label:'Généraliste BTP',sub:'Tout corps d\'état',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'construction',x:cx-380,y:cy+380,w:150,h:45,label:'Construction immobilière',sub:'Maisons, villas, immeubles',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'renovation',x:cx-380,y:cy+440,w:150,h:45,label:'Rénovation immobilière',sub:'Rénovation & entretien',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'design-int',x:cx-220,y:cy+440,w:150,h:45,label:'Design & décoration',sub:'Intérieur & extérieur',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'amenagement',x:cx-60,y:cy+440,w:150,h:45,label:'Aménagement luxe',sub:'Villas, hôtels & bureaux',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'nautique',x:cx+100,y:cy+440,w:150,h:45,label:'Design nautique',sub:'Yachts & résidences marines',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'encastrable',x:cx+100,y:cy+380,w:150,h:45,label:'Encastrable matériaux',sub:'Fourniture & installation',bg:'#eab308',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // SECURITE
+    {id:'secu-privee',x:cx-580,y:cy-320,w:150,h:45,label:'Sécurité privée',sub:'Agents & surveillance',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'convois-secu',x:cx-580,y:cy-260,w:150,h:45,label:'Convois sécurisés',sub:'Transport sensible',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'milice',x:cx-580,y:cy-200,w:150,h:45,label:'Milice privée',sub:'Protection rapprochée',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'armement',x:cx-580,y:cy-140,w:150,h:45,label:'Armement',sub:'Matériel & équipement',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'risques',x:cx-580,y:cy-80,w:150,h:45,label:'Gestion des risques',sub:'Audits & prévention',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'secu-even',x:cx-580,y:cy-20,w:150,h:45,label:'Sécurité événements',sub:'Protection VIP',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'secu-immo',x:cx-580,y:cy+40,w:150,h:45,label:'Sécurité immobilière',sub:'Surveillance & contrôle',bg:'#ef4444',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // DIVERTISSEMENT
+    {id:'casinos',x:cx-320,y:cy-460,w:150,h:45,label:'Casinos',sub:'Établissements de prestige',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'jeux',x:cx-160,y:cy-460,w:150,h:45,label:'Jeux',sub:'Tables & machines',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'paris-sport',x:cx-480,y:cy-460,w:150,h:45,label:'Paris sportifs',sub:'En ligne & point de vente',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'evenements',x:cx-480,y:cy-400,w:150,h:45,label:'Événements privés',sub:'Organisation sur mesure',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'voyages',x:cx-320,y:cy-400,w:150,h:45,label:'Voyage de luxe',sub:'Séjours & expériences VIP',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'courses-hip',x:cx-160,y:cy-400,w:150,h:45,label:'Courses',sub:'Hippiques & automobile',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'conciergerie-p',x:cx,y:cy-400,w:150,h:45,label:'Conciergerie premium',sub:'Service exclusif',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'nexus-net',x:cx,y:cy-460,w:150,h:45,label:'NEXUS',sub:'Réseau & networking',bg:'#f97316',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // LUXE
+    {id:'mode',x:cx+380,y:cy-520,w:150,h:45,label:'Mode',sub:'Vêtements & accessoires',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'horlogerie',x:cx+380,y:cy-580,w:150,h:45,label:'Horlogerie & bijoux',sub:'Pièces rares & collection',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'parfumerie',x:cx+380,y:cy-640,w:150,h:45,label:'Parfumerie & cosmétique',sub:'Marque & création',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'sante',x:cx+220,y:cy-580,w:150,h:45,label:'Santé & bien-être',sub:'Clinique & soins premium',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'sport',x:cx+220,y:cy-640,w:150,h:45,label:'Sport',sub:'Management & événements',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'complexe',x:cx+60,y:cy-580,w:150,h:45,label:'Complexe sportif',sub:'Salles & infrastructure',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'art',x:cx+60,y:cy-640,w:150,h:45,label:'Art',sub:'Galeries & expositions',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'collection-art',x:cx-100,y:cy-580,w:150,h:45,label:'Collection d\'art',sub:'Achat & investissement',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'ecuries',x:cx-100,y:cy-640,w:150,h:45,label:'Écuries & chevaux',sub:'Élevage & compétition',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    {id:'nutrition',x:cx-260,y:cy-580,w:150,h:45,label:'Nutrition sportive',sub:'Performance & bien-être',bg:'#a855f7',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+    // HOLDING CENTER ELEMENTS
+    {id:'finance',x:cx-200,y:cy-80,w:140,h:45,label:'Finance & Investissements',sub:'Gestion & stratégie',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
+    {id:'marketing',x:cx-200,y:cy+20,w:140,h:45,label:'Marketing & Communication',sub:'Média & influence',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
+    {id:'club',x:cx-200,y:cy+120,w:140,h:45,label:'Club investisseurs',sub:'Réseau international',bg:'#475569',color:'#fff',shape:'rounded',fontSize:10,notes:''},
+    // AUTRE
+    {id:'powerbank',x:cx+600,y:cy+500,w:150,h:45,label:'Location batterie externe',sub:'Autres projets',bg:'#64748b',color:'#fff',shape:'rounded',fontSize:11,notes:''},
+  ];
+  const edges=[
+    {from:'center',to:'p-auto'},{from:'center',to:'p-transport'},{from:'center',to:'p-immo'},
+    {from:'center',to:'p-secu'},{from:'center',to:'p-divert'},{from:'center',to:'p-luxe'},
+    {from:'center',to:'finance'},{from:'center',to:'marketing'},{from:'center',to:'club'},
+    // auto
+    {from:'p-auto',to:'palm'},{from:'p-auto',to:'concess'},{from:'p-auto',to:'convoyage'},
+    {from:'p-auto',to:'course'},{from:'p-auto',to:'garage'},{from:'p-auto',to:'collection'},
+    {from:'p-auto',to:'location-auto'},{from:'p-auto',to:'paris-auto'},
+    // transport
+    {from:'p-transport',to:'carga-express'},{from:'p-transport',to:'carga-clean'},
+    {from:'p-transport',to:'transport-secu'},{from:'p-transport',to:'logistique'},
+    {from:'p-transport',to:'conciergerie-t'},{from:'p-transport',to:'reseau-log'},
+    // immo
+    {from:'p-immo',to:'agence-immo'},{from:'p-immo',to:'btp'},{from:'p-immo',to:'construction'},
+    {from:'p-immo',to:'renovation'},{from:'p-immo',to:'design-int'},{from:'p-immo',to:'amenagement'},
+    {from:'p-immo',to:'nautique'},{from:'p-immo',to:'encastrable'},
+    // secu
+    {from:'p-secu',to:'secu-privee'},{from:'p-secu',to:'convois-secu'},{from:'p-secu',to:'milice'},
+    {from:'p-secu',to:'armement'},{from:'p-secu',to:'risques'},{from:'p-secu',to:'secu-even'},
+    {from:'p-secu',to:'secu-immo'},
+    // divert
+    {from:'p-divert',to:'casinos'},{from:'p-divert',to:'jeux'},{from:'p-divert',to:'paris-sport'},
+    {from:'p-divert',to:'evenements'},{from:'p-divert',to:'voyages'},{from:'p-divert',to:'courses-hip'},
+    {from:'p-divert',to:'conciergerie-p'},{from:'p-divert',to:'nexus-net'},
+    // luxe
+    {from:'p-luxe',to:'mode'},{from:'p-luxe',to:'horlogerie'},{from:'p-luxe',to:'parfumerie'},
+    {from:'p-luxe',to:'sante'},{from:'p-luxe',to:'sport'},{from:'p-luxe',to:'complexe'},
+    {from:'p-luxe',to:'art'},{from:'p-luxe',to:'collection-art'},{from:'p-luxe',to:'ecuries'},
+    {from:'p-luxe',to:'nutrition'},
+  ];
+  return {nodes,edges};
+}
+
+// ===== INIT =====
+function init(){
+  const saved=localStorage.getItem('nexus_mindmap');
+  if(saved){const d=JSON.parse(saved);nodes=d.nodes;edges=d.edges;}
+  else{const d=getNexusData();nodes=d.nodes;edges=d.edges;}
+  render();fitView();
+}
+
+// ===== RENDER =====
+function render(){
+  // Update SVG size
+  const bounds=getMapBounds();
+  svg.setAttribute('width',bounds.w+500);
+  svg.setAttribute('height',bounds.h+500);
+
+  // Draw edges
+  svg.innerHTML='';
+  edges.forEach(e=>{
+    const from=nodes.find(n=>n.id===e.from);
+    const to=nodes.find(n=>n.id===e.to);
+    if(!from||!to)return;
+    const x1=from.x+from.w/2, y1=from.y+from.h/2;
+    const x2=to.x+to.w/2, y2=to.y+to.h/2;
+    const dx=x2-x1, dy=y2-y1;
+    const d=`M${x1},${y1} C${x1+dx*0.5},${y1} ${x2-dx*0.5},${y2} ${x2},${y2}`;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',d);
+    path.setAttribute('stroke',selectedIds.has(e.from)||selectedIds.has(e.to)?'#475569':'#c8ccd8');
+    path.setAttribute('stroke-width','1.5');
+    path.setAttribute('fill','none');
+    path.setAttribute('opacity','0.7');
+    path.dataset.from=e.from;path.dataset.to=e.to;
+    svg.appendChild(path);
+  });
+
+  // Draw nodes
+  const existing=new Set();
+  canvas.querySelectorAll('.node').forEach(el=>existing.add(el.dataset.id));
+
+  // Remove deleted
+  canvas.querySelectorAll('.node').forEach(el=>{
+    if(!nodes.find(n=>n.id===el.dataset.id))el.remove();
+  });
+
+  // Add/update nodes
+  nodes.forEach(n=>{
+    let el=canvas.querySelector(`.node[data-id="${n.id}"]`);
+    if(!el){
+      el=document.createElement('div');
+      el.className='node';
+      el.dataset.id=n.id;
+      el.innerHTML=`<div class="node-label"></div><div class="node-sub"></div>`;
+      canvas.appendChild(el);
+      addNodeEvents(el,n);
+    }
+    updateNodeEl(el,n);
+  });
+
+  applyTransform();
+}
+
+function updateNodeEl(el,n){
+  el.style.left=n.x+'px';
+  el.style.top=n.y+'px';
+  el.style.width=n.w+'px';
+  el.style.minHeight=n.h+'px';
+  el.style.background=n.bg;
+  el.style.color=n.color;
+  el.style.borderColor=selectedIds.has(n.id)?'rgba(0,0,0,.4)':'transparent';
+  el.querySelector('.node-label').textContent=n.label;
+  el.querySelector('.node-label').style.fontSize=(n.fontSize||12)+'px';
+  el.querySelector('.node-sub').textContent=n.sub||'';
+  el.querySelector('.node-sub').style.display=n.sub?'block':'none';
+
+  // Shape
+  if(n.shape==='circle'){el.style.borderRadius='50%';el.style.width=n.h+'px';}
+  else if(n.shape==='pill'){el.style.borderRadius='999px';}
+  else if(n.shape==='pole'){el.style.borderRadius='12px';}
+  else{el.style.borderRadius='8px';}
+
+  if(n.notes){
+    el.style.boxShadow=selectedIds.has(n.id)?'':'inset 0 0 0 2px rgba(255,255,255,.3)';
+  }
+}
+
+function applyTransform(){
+  canvas.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zoomInfo').textContent=Math.round(scale*100)+'%';
+}
+
+// ===== NODE EVENTS =====
+function addNodeEvents(el,n){
+  el.addEventListener('mousedown',e=>{
+    if(e.button!==0)return;
+    e.stopPropagation();
+    if(mode==='connect'){
+      if(!connectStart){
+        connectStart=n.id;
+        el.style.outline='2px dashed #475569';
+      } else if(connectStart!==n.id){
+        addEdge(connectStart,n.id);
+        canvas.querySelectorAll('.node').forEach(ne=>ne.style.outline='');
+        connectStart=null;
+        saveHistory();
+      }
+      return;
+    }
+    if(!e.shiftKey)selectedIds.clear();
+    selectedIds.add(n.id);
+    dragNode=n.id;
+    const rect=el.getBoundingClientRect();
+    dragOffset={x:(e.clientX-rect.left)/scale,y:(e.clientY-rect.top)/scale};
+    render();
+  });
+
+  el.addEventListener('dblclick',e=>{
+    e.stopPropagation();
+    startEdit(n.id,el);
+  });
+
+  el.addEventListener('contextmenu',e=>{
+    e.preventDefault();e.stopPropagation();
+    selectedIds.clear();selectedIds.add(n.id);
+    showCtxMenu(e.clientX,e.clientY,n.id);
+    render();
+  });
+}
+
+// ===== EDIT IN PLACE =====
+function startEdit(id,el){
+  const n=nodes.find(x=>x.id===id);
+  if(!n)return;
+  const input=document.createElement('textarea');
+  input.className='node-edit';
+  input.value=n.label+(n.sub?'\n'+n.sub:'');
+  input.style.left=n.x+'px';
+  input.style.top=n.y+'px';
+  input.style.width=n.w+'px';
+  input.style.background=n.bg;
+  input.style.color=n.color;
+  canvas.appendChild(input);
+  el.style.visibility='hidden';
+  input.focus();input.select();
+
+  const finish=()=>{
+    const lines=input.value.split('\n');
+    n.label=lines[0]||n.label;
+    n.sub=lines[1]||'';
+    input.remove();
+    el.style.visibility='visible';
+    saveHistory();render();
+  };
+  input.addEventListener('blur',finish);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();finish();}if(e.key==='Escape')finish();});
+}
+
+// ===== CANVAS EVENTS =====
+wrap.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  if(mode==='add'){
+    const pos=screenToCanvas(e.clientX,e.clientY);
+    addNode(pos.x-75,pos.y-22);
+    return;
+  }
+  if(!dragNode){
+    isPanning=true;
+    panStart={x:e.clientX-panX,y:e.clientY-panY};
+    wrap.classList.add('grabbing');
+  }
+});
+
+window.addEventListener('mousemove',e=>{
+  if(isPanning){
+    panX=e.clientX-panStart.x;
+    panY=e.clientY-panStart.y;
+    applyTransform();
+  }
+  if(dragNode){
+    const n=nodes.find(x=>x.id===dragNode);
+    if(n){
+      const pos=screenToCanvas(e.clientX,e.clientY);
+      n.x=pos.x-dragOffset.x;
+      n.y=pos.y-dragOffset.y;
+      render();
+    }
+  }
+});
+
+window.addEventListener('mouseup',e=>{
+  if(dragNode){saveHistory();}
+  isPanning=false;dragNode=null;
+  wrap.classList.remove('grabbing');
+});
+
+wrap.addEventListener('click',e=>{
+  if(e.target===wrap||e.target===canvas||e.target===svg){
+    selectedIds.clear();
+    closeCtxMenu();
+    render();
+  }
+});
+
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const delta=e.deltaY>0?0.9:1.1;
+  const pos=screenToCanvas(e.clientX,e.clientY);
+  scale=Math.min(Math.max(scale*delta,0.1),4);
+  panX=e.clientX-pos.x*scale;
+  panY=e.clientY-pos.y*scale;
+  applyTransform();
+},{passive:false});
+
+// ===== CONTEXT MENU =====
+function showCtxMenu(x,y,id){
+  const menu=document.getElementById('ctxMenu');
+  menu.style.display='block';
+  menu.style.left=x+'px';menu.style.top=y+'px';
+  const n=nodes.find(x=>x.id===id);
+  menu.innerHTML=`
+    <div class="ctx-item" onclick="startEditNote('${id}')">📝 Notes & édition</div>
+    <div class="ctx-item" onclick="startConnectFrom('${id}')">⟶ Connecter</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="changeNodeColor('${id}')">🎨 Couleur</div>
+    <div class="ctx-item" onclick="duplicateNode('${id}')">⧉ Dupliquer</div>
+    <div class="ctx-item" onclick="addChildNode('${id}')">+ Ajouter enfant</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item danger" onclick="deleteNode('${id}')">🗑 Supprimer</div>
+    <div class="ctx-item danger" onclick="deleteNodeAndChildren('${id}')">🗑 Suppr. + enfants</div>
+  `;
+  closeCtxMenu._id=id;
+}
+function closeCtxMenu(){document.getElementById('ctxMenu').style.display='none';}
+document.addEventListener('click',e=>{if(!document.getElementById('ctxMenu').contains(e.target))closeCtxMenu();});
+
+// ===== NODE OPERATIONS =====
+let nodeCounter=100;
+function genId(){return 'n'+(++nodeCounter)+'_'+Date.now();}
+
+function addNode(x,y,label='Nouveau nœud',parentId=null){
+  const id=genId();
+  const n={id,x,y,w:150,h:45,label,sub:'',bg:'#64748b',color:'#ffffff',shape:'rounded',fontSize:12,notes:''};
+  nodes.push(n);
+  if(parentId)edges.push({from:parentId,to:id});
+  saveHistory();render();
+  // auto edit
+  setTimeout(()=>{const el=canvas.querySelector(`.node[data-id="${id}"]`);if(el)startEdit(id,el);},50);
+  return id;
+}
+
+function addChildNode(parentId){
+  closeCtxMenu();
+  const parent=nodes.find(n=>n.id===parentId);
+  if(!parent)return;
+  addNode(parent.x+parent.w+40,parent.y,`Enfant de ${parent.label.slice(0,15)}`,parentId);
+}
+
+function addEdge(from,to){
+  if(!edges.find(e=>e.from===from&&e.to===to))
+    edges.push({from,to});
+  render();
+}
+
+function deleteNode(id){
+  closeCtxMenu();
+  nodes=nodes.filter(n=>n.id!==id);
+  edges=edges.filter(e=>e.from!==id&&e.to!==id);
+  selectedIds.delete(id);
+  saveHistory();render();
+}
+
+function deleteNodeAndChildren(id){
+  closeCtxMenu();
+  const toDelete=new Set([id]);
+  let changed=true;
+  while(changed){changed=false;edges.forEach(e=>{if(toDelete.has(e.from)&&!toDelete.has(e.to)){toDelete.add(e.to);changed=true;}});}
+  nodes=nodes.filter(n=>!toDelete.has(n.id));
+  edges=edges.filter(e=>!toDelete.has(e.from)&&!toDelete.has(e.to));
+  toDelete.forEach(i=>selectedIds.delete(i));
+  saveHistory();render();
+}
+
+function deleteSelected(){
+  selectedIds.forEach(id=>deleteNode(id));
+}
+
+function duplicateNode(id){
+  closeCtxMenu();
+  const n=nodes.find(x=>x.id===id);
+  if(!n)return;
+  const newId=genId();
+  nodes.push({...n,id:newId,x:n.x+30,y:n.y+30});
+  saveHistory();render();
+}
+
+function duplicateSelected(){selectedIds.forEach(id=>duplicateNode(id));}
+
+function startConnectFrom(id){
+  closeCtxMenu();
+  connectStart=id;
+  setMode('connect');
+  const el=canvas.querySelector(`.node[data-id="${id}"]`);
+  if(el)el.style.outline='2px dashed #475569';
+}
+
+// ===== NOTE PANEL =====
+function startEditNote(id){
+  closeCtxMenu();
+  const n=nodes.find(x=>x.id===id);
+  if(!n)return;
+  noteNodeId=id;
+  document.getElementById('notePanelTitle').textContent='Éditer : '+n.label;
+  document.getElementById('noteNodeLabel').value=n.label;
+  document.getElementById('noteNodeSub').value=n.sub||'';
+  document.getElementById('noteContent').value=n.notes||'';
+  document.getElementById('notePanel').classList.add('open');
+}
+
+function saveNote(){
+  if(!noteNodeId)return;
+  const n=nodes.find(x=>x.id===noteNodeId);
+  if(!n)return;
+  n.label=document.getElementById('noteNodeLabel').value||n.label;
+  n.sub=document.getElementById('noteNodeSub').value;
+  n.notes=document.getElementById('noteContent').value;
+  saveHistory();render();
+}
+
+function closeNotePanel(){
+  document.getElementById('notePanel').classList.remove('open');
+  noteNodeId=null;
+}
+
+// ===== COLOR CHANGE =====
+function changeNodeColor(id){
+  closeCtxMenu();
+  const n=nodes.find(x=>x.id===id);
+  if(!n)return;
+  const input=document.createElement('input');
+  input.type='color';input.value=n.bg;
+  input.addEventListener('change',()=>{n.bg=input.value;render();saveHistory();});
+  input.click();
+}
+
+function changeNodeBg(val){
+  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.bg=val;});
+  render();
+}
+
+function changeNodeText(val){
+  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.color=val;});
+  render();
+}
+
+function changeShape(val){
+  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.shape=val;});
+  render();
+}
+
+function changeFontSize(val){
+  selectedIds.forEach(id=>{const n=nodes.find(x=>x.id===id);if(n)n.fontSize=parseInt(val);});
+  render();
+}
+
+// ===== MODE =====
+function setMode(m){
+  mode=m;
+  if(m!=='connect'){connectStart=null;canvas.querySelectorAll('.node').forEach(el=>el.style.outline='');}
+  ['select','add','connect'].forEach(id=>{
+    const btn=document.getElementById('btn-'+id);
+    if(btn)btn.classList.toggle('active',id===m);
+  });
+  wrap.classList.toggle('adding',m==='add');
+}
+
+// ===== VIEW =====
+function screenToCanvas(sx,sy){
+  return{x:(sx-panX)/scale,y:(sy-panY)/scale};
+}
+
+function getMapBounds(){
+  if(!nodes.length)return{x:0,y:0,w:2400,h:1600};
+  const xs=nodes.map(n=>n.x),ys=nodes.map(n=>n.y);
+  const x=Math.min(...xs),y=Math.min(...ys);
+  const w=Math.max(...nodes.map(n=>n.x+n.w))-x;
+  const h=Math.max(...nodes.map(n=>n.y+n.h))-y;
+  return{x,y,w,h};
+}
+
+function fitView(){
+  const b=getMapBounds();
+  const ww=wrap.offsetWidth,wh=wrap.offsetHeight-50;
+  const sx=(ww-80)/(b.w+100),sy=(wh-80)/(b.h+100);
+  scale=Math.min(sx,sy,1);
+  panX=40-(b.x*scale);
+  panY=40-(b.y*scale);
+  applyTransform();
+}
+
+function zoomIn(){scale=Math.min(scale*1.2,4);applyTransform();}
+function zoomOut(){scale=Math.max(scale*0.8,0.1);applyTransform();}
+
+function autoLayout(){
+  const center=nodes.find(n=>n.id==='center');
+  if(!center)return;
+  const poles=edges.filter(e=>e.from==='center').map(e=>nodes.find(n=>n.id===e.to)).filter(Boolean);
+  const angleStep=Math.PI*2/poles.length;
+  const poleR=300;
+  poles.forEach((pole,i)=>{
+    const angle=i*angleStep-Math.PI/2;
+    pole.x=center.x+center.w/2+Math.cos(angle)*poleR-pole.w/2;
+    pole.y=center.y+center.h/2+Math.sin(angle)*poleR-pole.h/2;
+    const children=edges.filter(e=>e.from===pole.id).map(e=>nodes.find(n=>n.id===e.to)).filter(Boolean);
+    const cStep=(Math.PI*0.8)/(Math.max(children.length-1,1));
+    const cAngle=angle-Math.PI*0.4;
+    const childR=200;
+    children.forEach((child,j)=>{
+      const ca=cAngle+j*cStep;
+      child.x=pole.x+pole.w/2+Math.cos(ca)*childR-child.w/2;
+      child.y=pole.y+pole.h/2+Math.sin(ca)*childR-child.h/2;
+    });
+  });
+  saveHistory();render();fitView();
+}
+
+// ===== HISTORY =====
+function saveHistory(){
+  history=history.slice(0,historyIdx+1);
+  history.push(JSON.stringify({nodes,edges}));
+  historyIdx=history.length-1;
+  if(history.length>50)history.shift();
+  saveMap();
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='y'){e.preventDefault();redo();}
+  if(e.key==='Delete'||e.key==='Backspace'){
+    if(document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA')
+      deleteSelected();
+  }
+  if(e.key==='Escape'){setMode('select');closeNotePanel();closeCtxMenu();}
+});
+
+function undo(){if(historyIdx>0){historyIdx--;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;render();}}
+function redo(){if(historyIdx<history.length-1){historyIdx++;const d=JSON.parse(history[historyIdx]);nodes=d.nodes;edges=d.edges;render();}}
+
+// ===== SAVE / LOAD =====
+function saveMap(){localStorage.setItem('nexus_mindmap',JSON.stringify({nodes,edges}));}
+
+function loadMap(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=ev=>{
+      const d=JSON.parse(ev.target.result);nodes=d.nodes;edges=d.edges;saveHistory();render();fitView();
+    };r.readAsText(f);
+  };input.click();
+}
+
+function resetMap(){
+  if(!confirm('Réinitialiser la mindmap NEXUS ? Toutes les modifications seront perdues.'))return;
+  const d=getNexusData();nodes=d.nodes;edges=d.edges;
+  saveHistory();render();fitView();
+}
+
+function exportPNG(){
+  alert('Pour exporter en PNG : Ctrl+Shift+P dans Chrome ou utilisez l\'impression page → Enregistrer en PDF.');
+}
+
+// ===== START =====
+init();
+setMode('select');
+</script>
+</body>
+</html>
