@@ -13,8 +13,7 @@
   --text:#f0f2f8;--muted:#7a8099;--dim:#3a4055;
   --green:#00d48a;--green-d:rgba(0,212,138,0.1);
   --red:#ff4f6a;--red-d:rgba(255,79,106,0.1);
-  --blue:#4f8fff;--blue-d:rgba(79,143,255,0.1);
-  --gold:#f5b731;--gold-d:rgba(245,183,49,0.1);
+  --blue:#4f8fff;--gold:#f5b731;--gold-d:rgba(245,183,49,0.1);
   --purple:#a78bfa;--orange:#ff8c42;
   --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
 }
@@ -23,7 +22,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .topbar{display:flex;align-items:center;gap:1rem;padding:.9rem 1.5rem;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
 .topbar-logo{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--gold);}
 .topbar-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
-.topbar-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-family:var(--mono);}
+.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;}
+.home-link:hover{border-color:var(--gold);color:var(--gold);}
+.topbar-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-family:var(--mono);margin-left:12px;}
 .sdot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .nav{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
@@ -39,7 +40,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .kpi{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;}
 .kpi-label{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:.3rem;}
 .kpi-val{font-size:20px;font-weight:600;font-family:var(--mono);}
-.kpi-val.pos{color:var(--green);}.kpi-val.neg{color:var(--red);}.kpi-val.gold{color:var(--gold);}
+.kpi-val.pos{color:var(--green);}.kpi-val.neg{color:var(--red);}
 .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:1.25rem;}
 .chart-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1rem;}
 .chart-title{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:.75rem;}
@@ -63,10 +64,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .scan-status.loading{color:var(--gold);}.scan-status.done{color:var(--green);}.scan-status.err{color:var(--red);}
 .filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.75rem;}
 .fbtn{font-size:10px;padding:3px 10px;border:1px solid var(--border);border-radius:16px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s;}
-.fbtn:hover{border-color:var(--gold);color:var(--gold);}
 .fbtn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
 .tx-list{display:flex;flex-direction:column;gap:5px;}
-.tx-row{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem;transition:background .15s;cursor:pointer;}
+.tx-row{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem;cursor:pointer;}
 .tx-row:hover{background:var(--s2);}
 .tx-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .tx-info{flex:1;min-width:0;}
@@ -87,12 +87,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .dette-card.owe{border-left:3px solid var(--red);}
 .dette-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
 .dette-person{font-family:var(--mono);font-size:12px;font-weight:500;}
-.dette-amt{font-family:var(--mono);font-size:15px;font-weight:600;}
-.dette-amt.pos{color:var(--green);}.dette-amt.neg{color:var(--red);}
+.dette-amt.pos{color:var(--green);font-family:var(--mono);font-size:15px;font-weight:600;}
+.dette-amt.neg{color:var(--red);font-family:var(--mono);font-size:15px;font-weight:600;}
 .dette-desc{font-size:11px;color:var(--muted);}
 .dette-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
 .settle-btn{padding:3px 10px;background:var(--green-d);border:1px solid var(--green);border-radius:4px;color:var(--green);font-family:var(--mono);font-size:9px;cursor:pointer;}
-.settle-btn:hover{background:var(--green);color:var(--bg);}
 .settle-btn.red{background:var(--red-d);border-color:var(--red);color:var(--red);}
 .goal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
 .goal-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1rem;}
@@ -105,7 +104,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .goal-add-row{display:flex;gap:5px;margin-top:7px;}
 .goal-add-row input{flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);font-size:11px;outline:none;}
 .goal-add-row button{padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;}
-.goal-add-row button:hover{border-color:var(--gold);color:var(--gold);}
 .del-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;}
 .del-btn:hover{color:var(--red);}
 .month-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem;}
@@ -142,8 +140,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .modal{background:var(--s1);border:1px solid var(--border);border-radius:12px;width:min(480px,92vw);max-height:90vh;overflow-y:auto;padding:1.25rem;}
 .modal img{width:100%;border-radius:8px;margin-bottom:.75rem;border:1px solid var(--border);}
 .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;}
-.badge{font-size:9px;padding:2px 7px;border-radius:8px;font-family:var(--mono);}
-.badge.settled{background:var(--s3);color:var(--muted);}
 </style>
 </head>
 <body>
@@ -153,6 +149,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       <div class="topbar-logo">COMPTABLE // v2.0</div>
       <div class="topbar-sub">Finances personnelles & professionnelles · EUR</div>
     </div>
+    <a class="home-link" href="index.html">← ACCUEIL</a>
     <div class="topbar-status"><div class="sdot"></div>ACTIF</div>
   </div>
   <div class="nav">
@@ -163,7 +160,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
     <button class="nav-btn" onclick="showView('conseil')">CONSEILLER IA</button>
   </div>
   <div class="main">
-
     <div class="view active" id="view-dashboard">
       <div class="month-row">
         <button class="mbtn" onclick="changeMonth(-1)">‹</button>
@@ -179,13 +175,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       <div class="sec-title">DERNIÈRES TRANSACTIONS</div>
       <div class="tx-list" id="recentTx"></div>
     </div>
-
     <div class="view" id="view-transactions">
       <div class="sec-title">SCANNER UN TICKET / REÇU</div>
-      <div class="scan-zone" id="scanZone" onclick="document.getElementById('scanFile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+      <div class="scan-zone" id="scanZone" onclick="document.getElementById('scanFile').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
         <input type="file" id="scanFile" accept="image/*" onchange="handleScan(this.files[0])"/>
         <div style="font-size:24px;margin-bottom:6px;">📷</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Clique ou glisse une photo de ticket · L'IA extrait les détails automatiquement</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Clique ou glisse un ticket · L'IA extrait les détails automatiquement</div>
       </div>
       <div class="sec-title">SAISIE MANUELLE</div>
       <div class="form-card">
@@ -212,7 +207,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
         <button class="btn" onclick="addTx()">+ AJOUTER</button>
       </div>
       <div class="sec-title">HISTORIQUE</div>
-      <div class="filter-row" id="filterRow">
+      <div class="filter-row">
         <button class="fbtn active" onclick="setFilter('all',this)">TOUT</button>
         <button class="fbtn" onclick="setFilter('perso-dep',this)">DÉPENSES PERSO</button>
         <button class="fbtn" onclick="setFilter('perso-rev',this)">REVENUS PERSO</button>
@@ -222,7 +217,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       </div>
       <div class="tx-list" id="txList"></div>
     </div>
-
     <div class="view" id="view-dettes">
       <div class="kpi-grid" id="detteKpi"></div>
       <div class="sec-title">NOUVELLE DETTE</div>
@@ -242,7 +236,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       </div>
       <div class="dette-list" id="detteList"></div>
     </div>
-
     <div class="view" id="view-epargne">
       <div class="sec-title">NOUVEL OBJECTIF</div>
       <div class="form-card">
@@ -256,7 +249,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       <div class="sec-title">MES OBJECTIFS</div>
       <div class="goal-grid" id="goalList"></div>
     </div>
-
     <div class="view" id="view-conseil">
       <div class="ai-panel">
         <div class="ai-quick">
@@ -274,7 +266,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
     </div>
   </div>
 </div>
-
 <div class="modal-overlay" id="txModal">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -284,9 +275,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
     <div id="modalContent"></div>
   </div>
 </div>
-
 <script>
-const API_KEY='TA_CLE_API';
 const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const CAT_COLORS={'perso-dep':'#ff4f6a','perso-rev':'#00d48a','freelance':'#4f8fff','epargne':'#a78bfa','avance':'#ff8c42','doit':'#00d48a'};
 const CAT_LABELS={'perso-dep':'Dépenses perso','perso-rev':'Revenus perso','freelance':'Freelance','epargne':'Épargne','avance':'Avance pour autrui','doit':'Remboursement reçu'};
@@ -295,21 +284,21 @@ let data=JSON.parse(localStorage.getItem('compta_v2')||'{"tx":[],"dettes":[],"go
 function save(){localStorage.setItem('compta_v2',JSON.stringify(data));}
 function fmt(n){return(n>=0?'':'‑')+'€'+Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 
+async function callAPI(body){
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json();return d.content?.find(b=>b.type==='text')?.text||'Erreur.';
+}
+
 function showView(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   const map={dashboard:'TABLEAU',transactions:'TRANS',dettes:'DETTE',epargne:'PARGNE',conseil:'CONSEIL'};
   document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.includes(map[v]))b.classList.add('active');});
-  if(v==='dashboard')renderDash();
-  if(v==='transactions')renderTxList();
-  if(v==='dettes')renderDettes();
-  if(v==='epargne')renderGoals();
-  if(v==='conseil'&&!aiHistory.length)aiWelcome();
+  if(v==='dashboard')renderDash();if(v==='transactions')renderTxList();if(v==='dettes')renderDettes();if(v==='epargne')renderGoals();if(v==='conseil'&&!aiHistory.length)aiWelcome();
 }
 
 function changeMonth(d){vMonth+=d;if(vMonth<0){vMonth=11;vYear--;}if(vMonth>11){vMonth=0;vYear++;}renderDash();}
-
 function mTx(){return data.tx.filter(t=>{const d=new Date(t.date);return d.getMonth()===vMonth&&d.getFullYear()===vYear;});}
 
 function renderDash(){
@@ -326,8 +315,7 @@ function renderDash(){
     <div class="kpi"><div class="kpi-label">ON ME DOIT</div><div class="kpi-val pos">${fmt(owed)}</div></div>
     <div class="kpi"><div class="kpi-label">JE DOIS</div><div class="kpi-val neg">${fmt(owe)}</div></div>`;
   renderCharts(txs);
-  const recent=[...data.tx].reverse().slice(0,5);
-  document.getElementById('recentTx').innerHTML=recent.length?recent.map(txHtml).join(''):'<div class="empty">Aucune transaction</div>';
+  document.getElementById('recentTx').innerHTML=[...data.tx].reverse().slice(0,5).map(txHtml).join('')||'<div class="empty">Aucune transaction</div>';
 }
 
 function renderCharts(txs){
@@ -345,7 +333,7 @@ function renderCharts(txs){
   charts.line=new Chart(document.getElementById('chartLine'),{type:'line',data:{labels:m6.map(x=>x.l),datasets:[{label:'Rev',data:m6.map(x=>x.r),borderColor:'#00d48a',backgroundColor:'rgba(0,212,138,.08)',tension:.4,fill:true,pointBackgroundColor:'#00d48a'},{label:'Dép',data:m6.map(x=>x.d),borderColor:'#ff4f6a',backgroundColor:'rgba(255,79,106,.08)',tension:.4,fill:true,pointBackgroundColor:'#ff4f6a'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#7a8099',font:{size:10}}}},scales:{x:{ticks:{color:'#7a8099',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#7a8099',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
 
-function handleDrop(e){e.preventDefault();document.getElementById('scanZone').classList.remove('drag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))handleScan(f);}
+function handleDrop(e){e.preventDefault();const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))handleScan(f);}
 
 async function handleScan(file){
   if(!file)return;
@@ -354,45 +342,28 @@ async function handleScan(file){
     const b64=e.target.result.split(',')[1];
     document.getElementById('scanZone').innerHTML=`<img src="${e.target.result}" class="scan-preview"/><div style="font-family:var(--mono);font-size:10px;color:var(--muted);">Image chargée</div><div class="scan-status loading" id="scanStatus">⏳ Analyse en cours...</div>`;
     try{
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:'Analyse des tickets/reçus financiers. Réponds UNIQUEMENT en JSON sans markdown: {"desc":"description","amount":0.00,"type":"dep ou rev","cat":"perso-dep ou perso-rev ou freelance ou epargne","date":"YYYY-MM-DD"}. Si impossible: {"error":"raison"}.',messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:'Extrais les infos de cette transaction.'}]}]})});
-      const d=await res.json();
-      const parsed=JSON.parse(d.content?.find(b=>b.type==='text')?.text||'{}');
+      const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:400,system:'Analyse des tickets/reçus financiers. Réponds UNIQUEMENT en JSON sans markdown: {"desc":"description","amount":0.00,"type":"dep ou rev","cat":"perso-dep ou perso-rev ou freelance ou epargne","date":"YYYY-MM-DD"}. Si impossible: {"error":"raison"}.',messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:'Extrais les infos de cette transaction.'}]}]});
+      const parsed=JSON.parse(reply);
       if(parsed.error){document.getElementById('scanStatus').className='scan-status err';document.getElementById('scanStatus').textContent='❌ '+parsed.error;}
       else{
-        document.getElementById('txDesc').value=parsed.desc||'';
-        document.getElementById('txAmt').value=parsed.amount||'';
-        document.getElementById('txType').value=parsed.type||'dep';
-        document.getElementById('txCat').value=parsed.cat||'perso-dep';
+        document.getElementById('txDesc').value=parsed.desc||'';document.getElementById('txAmt').value=parsed.amount||'';
+        document.getElementById('txType').value=parsed.type||'dep';document.getElementById('txCat').value=parsed.cat||'perso-dep';
         document.getElementById('txDate').value=parsed.date||new Date().toISOString().split('T')[0];
-        document.getElementById('scanStatus').className='scan-status done';
-        document.getElementById('scanStatus').textContent='✓ Champs remplis — vérifie et confirme';
+        document.getElementById('scanStatus').className='scan-status done';document.getElementById('scanStatus').textContent='✓ Champs remplis — vérifie et confirme';
         window._pendingImg=e.target.result;
       }
     }catch(err){document.getElementById('scanStatus').className='scan-status err';document.getElementById('scanStatus').textContent='❌ Erreur — saisis manuellement';}
-  };
-  r.readAsDataURL(file);
+  };r.readAsDataURL(file);
 }
 
-function resetScan(){document.getElementById('scanZone').innerHTML=`<input type="file" id="scanFile" accept="image/*" onchange="handleScan(this.files[0])"/><div style="font-size:24px;margin-bottom:6px;">📷</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Clique ou glisse une photo de ticket · L'IA extrait les détails automatiquement</div>`;document.getElementById('scanZone').onclick=()=>document.getElementById('scanFile').click();window._pendingImg=null;}
-
-function togglePersonField(){
-  const cat=document.getElementById('txCat').value;
-  const w=document.getElementById('personWrap');
-  const l=document.getElementById('personLabel');
-  if(cat==='avance'){w.style.display='flex';l.textContent='AVANCE POUR QUI ?';}
-  else if(cat==='doit'){w.style.display='flex';l.textContent='REMBOURSÉ PAR QUI ?';}
-  else{w.style.display='none';}
-}
+function resetScan(){document.getElementById('scanZone').innerHTML=`<input type="file" id="scanFile" accept="image/*" onchange="handleScan(this.files[0])"/><div style="font-size:24px;margin-bottom:6px;">📷</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Clique ou glisse un ticket · L'IA extrait les détails automatiquement</div>`;document.getElementById('scanZone').onclick=()=>document.getElementById('scanFile').click();window._pendingImg=null;}
+function togglePersonField(){const cat=document.getElementById('txCat').value;const w=document.getElementById('personWrap');const l=document.getElementById('personLabel');if(cat==='avance'){w.style.display='flex';l.textContent='AVANCE POUR QUI ?';}else if(cat==='doit'){w.style.display='flex';l.textContent='REMBOURSÉ PAR QUI ?';}else w.style.display='none';}
 
 function addTx(){
-  const desc=document.getElementById('txDesc').value.trim();
-  const amt=parseFloat(document.getElementById('txAmt').value);
-  const type=document.getElementById('txType').value;
-  const cat=document.getElementById('txCat').value;
-  const date=document.getElementById('txDate').value;
+  const desc=document.getElementById('txDesc').value.trim();const amt=parseFloat(document.getElementById('txAmt').value);
+  const type=document.getElementById('txType').value;const cat=document.getElementById('txCat').value;const date=document.getElementById('txDate').value;
   if(!desc||isNaN(amt)||amt<=0||!date)return;
-  const tx={id:Date.now(),desc,amount:amt,type,cat,date};
-  if(window._pendingImg)tx.img=window._pendingImg;
+  const tx={id:Date.now(),desc,amount:amt,type,cat,date};if(window._pendingImg)tx.img=window._pendingImg;
   data.tx.push(tx);
   const person=document.getElementById('txPerson').value.trim();
   if(cat==='avance'&&person)data.dettes.push({id:Date.now()+1,person,amount:amt,type:'owed',date,desc:`Avance : ${desc}`,settled:false});
@@ -414,114 +385,67 @@ function openTxModal(id){
   document.getElementById('txModal').classList.add('open');
 }
 document.getElementById('txModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-
-function renderTxList(){
-  const filtered=txFilter==='all'?[...data.tx]:data.tx.filter(t=>t.cat===txFilter);
-  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  document.getElementById('txList').innerHTML=filtered.length?filtered.map(txHtml).join(''):'<div class="empty">Aucune transaction</div>';
-}
+function renderTxList(){const filtered=txFilter==='all'?[...data.tx]:data.tx.filter(t=>t.cat===txFilter);filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));document.getElementById('txList').innerHTML=filtered.length?filtered.map(txHtml).join(''):'<div class="empty">Aucune transaction</div>';}
 function delTx(id){data.tx=data.tx.filter(t=>t.id!==id);save();renderTxList();renderDash();}
 function setFilter(f,btn){txFilter=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTxList();}
-
 function renderDettes(){
   const owed=data.dettes.filter(d=>d.type==='owed'&&!d.settled).reduce((s,d)=>s+d.amount,0);
   const owe=data.dettes.filter(d=>d.type==='owe'&&!d.settled).reduce((s,d)=>s+d.amount,0);
-  document.getElementById('detteKpi').innerHTML=`
-    <div class="kpi"><div class="kpi-label">ON ME DOIT</div><div class="kpi-val pos">${fmt(owed)}</div></div>
-    <div class="kpi"><div class="kpi-label">JE DOIS</div><div class="kpi-val neg">${fmt(owe)}</div></div>
-    <div class="kpi"><div class="kpi-label">SOLDE NET</div><div class="kpi-val ${owed-owe>=0?'pos':'neg'}">${fmt(owed-owe)}</div></div>`;
+  document.getElementById('detteKpi').innerHTML=`<div class="kpi"><div class="kpi-label">ON ME DOIT</div><div class="kpi-val pos">${fmt(owed)}</div></div><div class="kpi"><div class="kpi-label">JE DOIS</div><div class="kpi-val neg">${fmt(owe)}</div></div><div class="kpi"><div class="kpi-label">SOLDE NET</div><div class="kpi-val ${owed-owe>=0?'pos':'neg'}">${fmt(owed-owe)}</div></div>`;
   renderDetteList();
 }
 function addDette(){
-  const person=document.getElementById('dPerson').value.trim();
-  const amount=parseFloat(document.getElementById('dAmt').value);
-  const type=document.getElementById('dType').value;
-  const date=document.getElementById('dDate').value;
-  const desc=document.getElementById('dDesc').value.trim();
+  const person=document.getElementById('dPerson').value.trim();const amount=parseFloat(document.getElementById('dAmt').value);
+  const type=document.getElementById('dType').value;const date=document.getElementById('dDate').value;const desc=document.getElementById('dDesc').value.trim();
   if(!person||isNaN(amount)||amount<=0||!date)return;
   data.dettes.push({id:Date.now(),person,amount,type,date,desc,settled:false});
   save();['dPerson','dAmt','dDesc'].forEach(id=>document.getElementById(id).value='');renderDettes();
 }
-function setDetteTab(tab){
-  detteTab=tab;
-  document.querySelectorAll('.dtab').forEach(b=>{b.classList.remove('active-owed','active-owe');});
-  document.getElementById('dtab-'+tab).classList.add('active-'+tab);
-  renderDetteList();
-}
+function setDetteTab(tab){detteTab=tab;document.querySelectorAll('.dtab').forEach(b=>{b.classList.remove('active-owed','active-owe');});document.getElementById('dtab-'+tab).classList.add('active-'+tab);renderDetteList();}
 function renderDetteList(){
   const list=data.dettes.filter(d=>d.type===detteTab).sort((a,b)=>a.settled-b.settled||new Date(b.date)-new Date(a.date));
   document.getElementById('detteList').innerHTML=list.length?list.map(d=>`
     <div class="dette-card ${d.type}" style="${d.settled?'opacity:.5':''}">
-      <div class="dette-head">
-        <div class="dette-person">${d.person}${d.settled?' <span class="badge settled">RÉGLÉ</span>':''}</div>
-        <div class="dette-amt ${d.type==='owed'?'pos':'neg'}">${d.type==='owed'?'+':'-'}${fmt(d.amount)}</div>
-      </div>
+      <div class="dette-head"><div class="dette-person">${d.person}${d.settled?' (réglé)':''}</div><div class="dette-amt ${d.type==='owed'?'pos':'neg'}">${d.type==='owed'?'+':'-'}${fmt(d.amount)}</div></div>
       <div class="dette-desc">${d.desc||'—'} · ${d.date}</div>
-      <div class="dette-footer">
-        ${!d.settled?`<button class="settle-btn ${d.type==='owe'?'red':''}" onclick="settleDette(${d.id})">${d.type==='owed'?'✓ Reçu':'✓ Remboursé'}</button>`:'<span></span>'}
-        <button class="del-btn" onclick="delDette(${d.id})">×</button>
-      </div>
+      <div class="dette-footer">${!d.settled?`<button class="settle-btn ${d.type==='owe'?'red':''}" onclick="settleDette(${d.id})">${d.type==='owed'?'✓ Reçu':'✓ Remboursé'}</button>`:'<span></span>'}<button class="del-btn" onclick="delDette(${d.id})">×</button></div>
     </div>`).join(''):'<div class="empty">Aucune dette</div>';
 }
 function settleDette(id){const d=data.dettes.find(x=>x.id===id);if(d){d.settled=true;save();renderDettes();}}
 function delDette(id){data.dettes=data.dettes.filter(d=>d.id!==id);save();renderDettes();}
-
 function addGoal(){
-  const name=document.getElementById('gName').value.trim();
-  const target=parseFloat(document.getElementById('gTarget').value);
-  const saved=parseFloat(document.getElementById('gSaved').value)||0;
+  const name=document.getElementById('gName').value.trim();const target=parseFloat(document.getElementById('gTarget').value);const saved=parseFloat(document.getElementById('gSaved').value)||0;
   if(!name||isNaN(target)||target<=0)return;
-  data.goals.push({id:Date.now(),name,target,saved});
-  save();['gName','gTarget','gSaved'].forEach(id=>document.getElementById(id).value='');renderGoals();
+  data.goals.push({id:Date.now(),name,target,saved});save();['gName','gTarget','gSaved'].forEach(id=>document.getElementById(id).value='');renderGoals();
 }
 function renderGoals(){
-  document.getElementById('goalList').innerHTML=data.goals.length?data.goals.map(g=>{
-    const pct=Math.min(100,Math.round((g.saved/g.target)*100));
-    return `<div class="goal-card">
-      <div class="goal-head"><div class="goal-name">${g.name}</div><div style="display:flex;align-items:center;gap:6px;"><div class="goal-pct">${pct}%</div><button class="del-btn" onclick="delGoal(${g.id})">×</button></div></div>
-      <div class="pbar-bg"><div class="pbar-fill" style="width:${pct}%"></div></div>
-      <div class="goal-amounts"><span>${fmt(g.saved)}</span><span>${fmt(g.target)}</span></div>
-      <div class="goal-add-row"><input type="number" placeholder="Ajouter €" id="gadd_${g.id}"/><button onclick="addToGoal(${g.id})">+</button></div>
-    </div>`;
-  }).join(''):'<div class="empty">Aucun objectif</div>';
+  document.getElementById('goalList').innerHTML=data.goals.length?data.goals.map(g=>{const pct=Math.min(100,Math.round((g.saved/g.target)*100));return `<div class="goal-card"><div class="goal-head"><div class="goal-name">${g.name}</div><div style="display:flex;align-items:center;gap:6px;"><div class="goal-pct">${pct}%</div><button class="del-btn" onclick="delGoal(${g.id})">×</button></div></div><div class="pbar-bg"><div class="pbar-fill" style="width:${pct}%"></div></div><div class="goal-amounts"><span>${fmt(g.saved)}</span><span>${fmt(g.target)}</span></div><div class="goal-add-row"><input type="number" placeholder="Ajouter €" id="gadd_${g.id}"/><button onclick="addToGoal(${g.id})">+</button></div></div>`;}).join(''):'<div class="empty">Aucun objectif</div>';
 }
 function addToGoal(id){const val=parseFloat(document.getElementById('gadd_'+id).value);if(isNaN(val)||val<=0)return;const g=data.goals.find(x=>x.id===id);if(g){g.saved=Math.min(g.target,g.saved+val);save();renderGoals();}}
 function delGoal(id){data.goals=data.goals.filter(g=>g.id!==id);save();renderGoals();}
-
 function buildCtx(){
-  const now=new Date();
-  const mTxs=data.tx.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
-  const rev=mTxs.filter(t=>t.type==='rev').reduce((s,t)=>s+t.amount,0);
-  const dep=mTxs.filter(t=>t.type==='dep').reduce((s,t)=>s+t.amount,0);
-  const owed=data.dettes.filter(d=>d.type==='owed'&&!d.settled).reduce((s,d)=>s+d.amount,0);
-  const owe=data.dettes.filter(d=>d.type==='owe'&&!d.settled).reduce((s,d)=>s+d.amount,0);
-  return `Données financières : revenus ce mois ${rev.toFixed(2)}€, dépenses ${dep.toFixed(2)}€, solde ${(rev-dep).toFixed(2)}€. Dettes : on me doit ${owed.toFixed(2)}€, je dois ${owe.toFixed(2)}€. Objectifs : ${data.goals.map(g=>`${g.name} ${g.saved}€/${g.target}€`).join(', ')||'aucun'}.`;
+  const now=new Date();const mTxs=data.tx.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const rev=mTxs.filter(t=>t.type==='rev').reduce((s,t)=>s+t.amount,0);const dep=mTxs.filter(t=>t.type==='dep').reduce((s,t)=>s+t.amount,0);
+  const owed=data.dettes.filter(d=>d.type==='owed'&&!d.settled).reduce((s,d)=>s+d.amount,0);const owe=data.dettes.filter(d=>d.type==='owe'&&!d.settled).reduce((s,d)=>s+d.amount,0);
+  return `Données : revenus ${rev.toFixed(2)}€, dépenses ${dep.toFixed(2)}€, solde ${(rev-dep).toFixed(2)}€. Dettes : on me doit ${owed.toFixed(2)}€, je dois ${owe.toFixed(2)}€. Objectifs : ${data.goals.map(g=>`${g.name} ${g.saved}€/${g.target}€`).join(', ')||'aucun'}.`;
 }
 function aiWelcome(){addAiMsg('agent','**Conseiller financier actif.**\n\nJ\'ai accès à tes données en temps réel. Que veux-tu analyser ?');}
 function addAiMsg(role,html){
-  const chat=document.getElementById('aiChat');
-  const div=document.createElement('div');div.className='ai-msg '+(role==='user'?'user':'');
+  const chat=document.getElementById('aiChat');const div=document.createElement('div');div.className='ai-msg '+(role==='user'?'user':'');
   const av=document.createElement('div');av.className='ai-av '+(role==='agent'?'agent':'');av.textContent=role==='user'?'E':'$';
-  const bub=document.createElement('div');bub.className='ai-bub';
-  bub.innerHTML=html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  const bub=document.createElement('div');bub.className='ai-bub';bub.innerHTML=html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
   div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
 }
 function addAiTyping(){const chat=document.getElementById('aiChat');const div=document.createElement('div');div.className='ai-msg';div.id='aiTyping';const av=document.createElement('div');av.className='ai-av agent';av.textContent='$';const bub=document.createElement('div');bub.className='ai-bub';bub.innerHTML='<div class="typing-b"><div class="td"></div><div class="td"></div><div class="td"></div></div>';div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;}
 async function aiSend(){
-  const inp=document.getElementById('aiInp');const text=inp.value.trim();
-  if(!text||document.getElementById('aiTyping'))return;
+  const inp=document.getElementById('aiInp');const text=inp.value.trim();if(!text||document.getElementById('aiTyping'))return;
   inp.value='';addAiMsg('user',text);aiHistory.push({role:'user',content:text});addAiTyping();
   const sys=`Tu es un conseiller financier expert. Evan est basé à Palma de Mallorca, en transition restauration→Frigicoll (clim véhicules, El Prat, Barcelone). Objectifs : permis C/CE, Australie mines FIFO, entreprise convoyage. Devise : Euro. ${buildCtx()} Français uniquement, chiffres précis, conseils actionnables, jamais de flatterie.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:aiHistory})});
-    const d=await res.json();const reply=d.content?.find(b=>b.type==='text')?.text||'Erreur.';
-    document.getElementById('aiTyping')?.remove();addAiMsg('agent',reply);aiHistory.push({role:'assistant',content:reply});
-  }catch(e){document.getElementById('aiTyping')?.remove();addAiMsg('agent','Erreur : '+e.message);}
+  try{const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:aiHistory});document.getElementById('aiTyping')?.remove();addAiMsg('agent',reply);aiHistory.push({role:'assistant',content:reply});}
+  catch(e){document.getElementById('aiTyping')?.remove();addAiMsg('agent','Erreur : '+e.message);}
 }
 function aiQ(t){document.getElementById('aiInp').value=t;aiSend();}
-
-document.getElementById('txDate').valueAsDate=new Date();
-document.getElementById('dDate').valueAsDate=new Date();
+document.getElementById('txDate').valueAsDate=new Date();document.getElementById('dDate').valueAsDate=new Date();
 renderDash();
 </script>
 </body>

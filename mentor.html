@@ -23,6 +23,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .top-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-family:var(--mono);}
 .sdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.home-link{margin-left:12px;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;}
+.home-link:hover{border-color:var(--accent);color:var(--accent);}
 .mod-bar{display:flex;flex-wrap:wrap;gap:5px;padding:.75rem 1.5rem;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
 .mpill{padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;background:transparent;color:var(--muted);font-family:var(--mono);transition:all .15s;}
 .mpill:hover{border-color:var(--accent);color:var(--accent);}
@@ -50,7 +52,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
 .msg.user{flex-direction:row-reverse;}
 .av{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-family:var(--mono);}
 .av.agent{background:var(--accent-d);border-color:var(--accent);color:var(--accent);}
-.av.terrain{background:var(--warn-d);border-color:var(--warn);color:var(--warn);}
 .bub{max-width:82%;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.7;border:1px solid var(--border);background:var(--s1);color:var(--text);white-space:pre-wrap;}
 .msg.user .bub{background:var(--accent-d);border-color:var(--accent);color:var(--accent);}
 .bub.terrain-bub{background:var(--warn-d);border-color:var(--warn);color:var(--warn);font-style:italic;}
@@ -74,6 +75,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
       <div class="top-title">MENTOR CLIM // v2.0</div>
       <div class="top-sub">Frigicoll · Thermoking · El Prat de Llobregat</div>
     </div>
+    <a class="home-link" href="index.html">← ACCUEIL</a>
     <div class="top-status"><div class="sdot"></div>EN LIGNE</div>
   </div>
   <div class="mod-bar" id="modBar"></div>
@@ -89,8 +91,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
     </div>
     <div class="terrain-box" id="terrainBox">
       <div class="terrain-title">🔧 RAPPORT TERRAIN</div>
-      <div class="terrain-desc">Décris ce que tu as fait ou vu aujourd'hui au taller. L'agent relie ton expérience aux concepts du module.</div>
-      <textarea id="terrainTxt" placeholder="Ex: Aujourd'hui j'ai démonté un compresseur sur un Volvo FH, il y avait une fuite..."></textarea>
+      <div class="terrain-desc">Décris ce que tu as fait ou vu aujourd'hui au taller.</div>
+      <textarea id="terrainTxt" placeholder="Ex: Aujourd'hui j'ai démonté un compresseur sur un Volvo FH..."></textarea>
       <div class="terrain-btns">
         <button class="tbtn" onclick="toggleTerrain()">Annuler</button>
         <button class="tbtn primary" onclick="submitTerrain()">Analyser →</button>
@@ -104,7 +106,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--b
   </div>
 </div>
 <script>
-const API_KEY = 'ta cle api';
 const MODS=[
   {label:'Électricité',topics:'tension (V), courant (A), résistance (Ohm), loi d\'Ohm, circuits série/parallèle, schémas 12V/24V, fusibles, relais, contacteurs, masse châssis, alternateur, batterie véhicule lourd'},
   {label:'Moteur',topics:'moteur diesel 4 temps, moteur électrique 12V/24V, courroie compresseur, vilebrequin, compresseur entraîné moteur vs diesel autonome, alternateur, gestion énergie embarquée camion'},
@@ -115,7 +116,6 @@ const MODS=[
   {label:'Maintenance',topics:'planning 500h/1000h/2000h, nettoyage condenseur/évaporateur, courroies et filtres, contrôle charge fluide, détection fuites (détecteur électronique), resserrage connexions, firmware contrôleurs TK, rapport intervention, attestation capacité fluides'},
 ];
 let curMod=0,history=[],msgCount=0;
-
 document.getElementById('modBar').innerHTML=MODS.map((m,i)=>`<button class="mpill ${i===0?'active':''}" id="mp${i}" onclick="selectMod(${i})">${m.label}</button>`).join('');
 
 function selectMod(i){
@@ -147,42 +147,33 @@ function addTyping(){
   div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
 }
 
+async function callAPI(body){
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json();
+  return d.content?.find(b=>b.type==='text')?.text||'Erreur.';
+}
+
 async function send(){
   const inp=document.getElementById('inp');const text=inp.value.trim();
   if(!text||document.getElementById('typing'))return;
   inp.value='';addMsg('user',text);history.push({role:'user',content:text});addTyping();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys(),messages:history})
-    });
-    const d=await res.json();
-    const reply=d.content?.find(b=>b.type==='text')?.text||'Erreur.';
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:1000,system:sys(),messages:history});
     document.getElementById('typing')?.remove();addMsg('agent',reply);history.push({role:'assistant',content:reply});
   }catch(e){document.getElementById('typing')?.remove();addMsg('agent','Erreur : '+e.message);}
 }
 
 function q(text){document.getElementById('inp').value=text;send();}
-
-function toggleTerrain(){
-  const b=document.getElementById('terrainBox');
-  b.style.display=b.style.display==='block'?'none':'block';
-}
+function toggleTerrain(){const b=document.getElementById('terrainBox');b.style.display=b.style.display==='block'?'none':'block';}
 
 async function submitTerrain(){
   const txt=document.getElementById('terrainTxt').value.trim();if(!txt)return;
   toggleTerrain();document.getElementById('terrainTxt').value='';
   addMsg('user','[Rapport terrain] '+txt,'terrain');
-  const prompt=`[RAPPORT TERRAIN]\n${txt}\n\nAnalyse mon expérience. Relie chaque élément aux concepts du module. Explique techniquement ce que j'ai observé, corrige sans ménagement si quelque chose est inexact.`;
+  const prompt=`[RAPPORT TERRAIN]\n${txt}\n\nAnalyse mon expérience. Relie chaque élément aux concepts du module. Corrige sans ménagement si quelque chose est inexact.`;
   history.push({role:'user',content:prompt});addTyping();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,system:sys(),messages:history})
-    });
-    const d=await res.json();const reply=d.content?.find(b=>b.type==='text')?.text||'Erreur.';
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:1200,system:sys(),messages:history});
     document.getElementById('typing')?.remove();addMsg('agent',reply);history.push({role:'assistant',content:reply});
   }catch(e){document.getElementById('typing')?.remove();addMsg('agent','Erreur : '+e.message);}
 }
