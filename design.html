@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Design & DA</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f8f9fc;--s1:#ffffff;--s2:#f0f2f7;--s3:#e4e8f0;--border:#d8dce8;
+  --text:#1a1d2e;--muted:#6a688a;--dim:#9095b0;
+  --accent:#c084fc;--accent-d:rgba(192,132,252,0.1);--accent-m:rgba(192,132,252,0.2);
+  --pink:#f472b6;--pink-d:rgba(244,114,182,0.1);
+  --cyan:#22d3ee;--cyan-d:rgba(34,211,238,0.1);
+  --green:#4ade80;--green-d:rgba(74,222,128,0.1);
+  --gold:#fbbf24;--gold-d:rgba(251,191,36,0.1);
+  --red:#f87171;
+  --mono:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:300;}
+.shell{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.topbar{display:flex;align-items:center;gap:1rem;padding:.85rem 1.5rem;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;}
+.topbar-logo{font-family:var(--mono);font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.topbar-sub{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.home-link{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:4px;}
+.home-link:hover{border-color:var(--accent);color:var(--accent);}
+.status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green);font-family:var(--mono);margin-left:12px;}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav{display:flex;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{padding:.65rem 1.2rem;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.main{flex:1;overflow-y:auto;padding:1.5rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-thumb{background:var(--border);}
+.view{display:none;}.view.active{display:block;}
+.sec-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* FORM */
+.form-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.fi,.fs{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:var(--body);}
+.fi:focus,.fs:focus{border-color:var(--accent);}
+.fs option{background:var(--s2);}
+.fi-area{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;font-family:var(--body);width:100%;min-height:90px;resize:vertical;line-height:1.6;transition:border-color .15s;}
+.fi-area:focus{border-color:var(--accent);}
+.btn-gen{padding:9px 20px;background:var(--accent-d);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;font-weight:500;}
+.btn-gen:hover{background:var(--accent);color:var(--bg);}
+.btn-gen:disabled{opacity:.4;cursor:not-allowed;}
+
+/* RESULT BLOCKS */
+.result-area{display:none;}
+.result-area.visible{display:block;}
+.result-block{background:var(--s1);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+.rb-head{display:flex;align-items:center;gap:10px;padding:.85rem 1.1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.rb-head:hover{background:var(--s2);}
+.rb-icon{font-size:16px;flex-shrink:0;}
+.rb-title{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);flex:1;}
+.rb-copy{padding:3px 10px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;cursor:pointer;transition:all .15s;}
+.rb-copy:hover{border-color:var(--green);color:var(--green);}
+.rb-copy.copied{border-color:var(--green);color:var(--green);background:var(--green-d);}
+.rb-chev{font-size:10px;color:var(--muted);transition:transform .2s;}
+.rb-chev.open{transform:rotate(180deg);}
+.rb-body{padding:1.1rem;font-size:13px;line-height:1.8;color:var(--text);display:none;white-space:pre-wrap;}
+.rb-body.open{display:block;}
+.rb-body strong{font-weight:500;color:var(--accent);}
+.rb-body em{color:var(--pink);font-style:normal;}
+
+/* CHARTE VISUELLE */
+.charte-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:1.25rem;}
+.charte-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:1rem;}
+.charte-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:.5rem;}
+.color-swatches{display:flex;gap:6px;flex-wrap:wrap;}
+.swatch{width:36px;height:36px;border-radius:6px;cursor:pointer;border:2px solid transparent;position:relative;}
+.swatch:hover{border-color:white;}
+.swatch-hex{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--muted);white-space:nowrap;font-family:var(--mono);}
+
+/* TYPING */
+.typing-row{display:none;align-items:center;gap:8px;padding:.85rem 1.1rem;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--s1);border:1px solid var(--border);border-radius:10px;margin-bottom:1rem;}
+.typing-row.visible{display:flex;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* PROJETS SAUVEGARDÉS */
+.proj-list{display:flex;flex-direction:column;gap:10px;}
+.proj-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.proj-head{display:flex;align-items:center;gap:10px;padding:.85rem 1.1rem;border-bottom:1px solid var(--border);}
+.proj-name{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text);flex:1;}
+.proj-type{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.proj-date{font-size:10px;color:var(--dim);font-family:var(--mono);}
+.proj-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
+.proj-del:hover{color:var(--red);}
+.proj-body{padding:.85rem 1.1rem;}
+.proj-section{margin-bottom:.75rem;}
+.proj-section-title{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:4px;}
+.proj-section-content{font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;}
+.btn-expand{padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--muted);font-size:9px;cursor:pointer;font-family:var(--mono);}
+.btn-expand:hover{border-color:var(--accent);color:var(--accent);}
+
+/* DA CHAT */
+.da-panel{display:flex;flex-direction:column;height:calc(100vh - 185px);}
+.da-chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:.75rem;scrollbar-width:thin;}
+.da-msg{display:flex;gap:8px;align-items:flex-start;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.da-msg.user{flex-direction:row-reverse;}
+.da-av{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;border:1px solid var(--border);background:var(--s2);}
+.da-av.agent{background:var(--accent-d);border-color:var(--accent);}
+.da-bub{max-width:82%;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.75;border:1px solid var(--border);background:var(--s1);color:var(--text);white-space:pre-wrap;}
+.da-msg.user .da-bub{background:var(--accent-d);border-color:var(--accent);color:var(--accent);}
+.da-bub strong{font-weight:500;color:var(--accent);}
+.typing-b{display:flex;gap:3px;align-items:center;padding:10px 14px;}
+.td{width:4px;height:4px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+.da-quick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem;}
+.da-qbtn{font-size:10px;padding:4px 10px;border:1px solid var(--border);border-radius:16px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s;}
+.da-qbtn:hover{border-color:var(--accent);color:var(--accent);}
+.da-input-row{display:flex;gap:6px;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);}
+.da-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--body);font-size:13px;outline:none;}
+.da-input:focus{border-color:var(--accent);}
+.da-send{padding:8px 14px;background:var(--accent-d);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;}
+.da-send:hover{background:var(--accent);color:var(--bg);}
+.empty{text-align:center;padding:2.5rem;color:var(--muted);font-family:var(--mono);font-size:11px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">DESIGN & DA // v1.0</div>
+      <div class="topbar-sub">Direction artistique · Canva · Open Image 2.0</div>
+    </div>
+    <a class="home-link" href="index.html">← ACCUEIL</a>
+    <div class="status"><div class="sdot"></div>ACTIF</div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showView('projet')">NOUVEAU PROJET</button>
+    <button class="nav-btn" onclick="showView('prompts')">PROMPTS IMAGE</button>
+    <button class="nav-btn" onclick="showView('sauvegardes')">PROJETS SAUVEGARDÉS <span id="savedCount"></span></button>
+    <button class="nav-btn" onclick="showView('da')">DIRECTEUR ARTISTIQUE</button>
+  </div>
+  <div class="main">
+
+    <!-- NOUVEAU PROJET -->
+    <div class="view active" id="view-projet">
+      <div class="sec-title">BRIEF PROJET</div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">TYPE DE PROJET</label>
+            <select class="fs" id="projType">
+              <option value="site">Site web (landing page / vitrine)</option>
+              <option value="affiche">Affiche / Poster</option>
+              <option value="flyer">Flyer (recto/verso)</option>
+              <option value="presentation">Présentation (multi-pages)</option>
+              <option value="carte">Carte de visite</option>
+              <option value="logo">Identité visuelle / Logo</option>
+              <option value="reseaux">Visuels réseaux sociaux</option>
+              <option value="brochure">Brochure / Catalogue</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">UNIVERS VISUEL SOUHAITÉ</label>
+            <select class="fs" id="projStyle">
+              <option value="tech-industriel">Tech industriel (sombre, métallique)</option>
+              <option value="premium-epure">Premium épuré (minimaliste, luxe)</option>
+              <option value="moderne-dynamique">Moderne dynamique (contrasté, bold)</option>
+              <option value="professionnel-confiance">Professionnel confiance (sobre, bleu)</option>
+              <option value="artisanal-authentique">Artisanal authentique (chaud, humain)</option>
+              <option value="futuriste">Futuriste (gradient, neon)</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">FORMAT / DIMENSIONS</label>
+            <select class="fs" id="projFormat">
+              <option value="A4 portrait">A4 Portrait</option>
+              <option value="A4 paysage">A4 Paysage</option>
+              <option value="A3">A3</option>
+              <option value="1920x1080px">16:9 (présentation/écran)</option>
+              <option value="1080x1080px">Carré 1:1 (réseaux)</option>
+              <option value="1080x1920px">Story 9:16</option>
+              <option value="85x55mm">Carte de visite standard</option>
+              <option value="libre">Libre / à définir</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">NOMBRE DE PAGES / SLIDES</label>
+            <input class="fi" id="projPages" type="number" min="1" max="50" value="1" placeholder="1"/>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label class="fl">DESCRIPTION DU PROJET</label>
+          <textarea class="fi-area" id="projDesc" placeholder="Ex: Flyer de présentation de mes services de technicien climatisation embarquée freelance. Cible : transporteurs et gestionnaires de flottes de camions réfrigérés. Message principal : expert Thermoking certifié, intervention rapide, devis gratuit. Inclure logo Thermoking partner (à placer), photo d'un technicien au travail, coordonnées."></textarea>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label class="fl">COULEURS OU IDENTITÉ EXISTANTE (optionnel)</label>
+          <input class="fi" id="projColors" placeholder="Ex: bleu #0055A4, blanc, acier gris — ou 'pas de contrainte'"/>
+        </div>
+        <button class="btn-gen" id="btnProj" onclick="generateProject()">✦ GÉNÉRER LA DIRECTION ARTISTIQUE COMPLÈTE</button>
+      </div>
+
+      <div class="typing-row" id="projTyping">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span>Le directeur artistique travaille...</span>
+      </div>
+
+      <div class="result-area" id="projResult">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--accent);">✦ DIRECTION ARTISTIQUE GÉNÉRÉE</div>
+          <button class="btn-gen" style="padding:6px 14px;font-size:10px;" onclick="saveProject()">⭐ Sauvegarder le projet</button>
+        </div>
+
+        <div class="result-block" id="rb-charte">
+          <div class="rb-head" onclick="toggleRB('charte')">
+            <div class="rb-icon">🎨</div>
+            <div class="rb-title">CHARTE GRAPHIQUE</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('charte')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-charte">▼</div>
+          </div>
+          <div class="rb-body open" id="body-charte"></div>
+        </div>
+
+        <div class="result-block" id="rb-moodboard">
+          <div class="rb-head" onclick="toggleRB('moodboard')">
+            <div class="rb-icon">🖼</div>
+            <div class="rb-title">MOODBOARD & RÉFÉRENCES VISUELLES</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('moodboard')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-moodboard">▼</div>
+          </div>
+          <div class="rb-body open" id="body-moodboard"></div>
+        </div>
+
+        <div class="result-block" id="rb-canva">
+          <div class="rb-head" onclick="toggleRB('canva')">
+            <div class="rb-icon">📐</div>
+            <div class="rb-title">SCRIPT CANVA — PAGE PAR PAGE</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('canva')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-canva">▼</div>
+          </div>
+          <div class="rb-body open" id="body-canva"></div>
+        </div>
+
+        <div class="result-block" id="rb-prompts">
+          <div class="rb-head" onclick="toggleRB('prompts')">
+            <div class="rb-icon">🤖</div>
+            <div class="rb-title">PROMPTS OPEN IMAGE 2.0</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('prompts')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-prompts">▼</div>
+          </div>
+          <div class="rb-body open" id="body-prompts"></div>
+        </div>
+
+        <div class="result-block" id="rb-brief">
+          <div class="rb-head" onclick="toggleRB('brief')">
+            <div class="rb-icon">📋</div>
+            <div class="rb-title">BRIEF GRAPHISTE (à transmettre)</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('brief')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-brief">▼</div>
+          </div>
+          <div class="rb-body open" id="body-brief"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMPTS IMAGE -->
+    <div class="view" id="view-prompts">
+      <div class="sec-title">GÉNÉRATEUR DE PROMPTS OPEN IMAGE 2.0</div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">TYPE DE VISUEL</label>
+            <select class="fs" id="imgType">
+              <option value="photo_realiste">Photo réaliste</option>
+              <option value="illustration">Illustration vectorielle</option>
+              <option value="render_3d">Render 3D</option>
+              <option value="ambiance">Photo d'ambiance / mood</option>
+              <option value="portrait">Portrait professionnel</option>
+              <option value="produit">Photo produit</option>
+              <option value="architecture">Architecture / lieu</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">STYLE PHOTOGRAPHIQUE</label>
+            <select class="fs" id="imgStyle">
+              <option value="editorial">Éditorial professionnel</option>
+              <option value="industriel">Industriel / terrain</option>
+              <option value="minimaliste">Minimaliste studio</option>
+              <option value="dynamique">Dynamique grand angle</option>
+              <option value="cinematic">Cinématique / moody</option>
+              <option value="documentaire">Documentaire authentique</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">RATIO / FORMAT</label>
+            <select class="fs" id="imgRatio">
+              <option value="16:9">16:9 (paysage)</option>
+              <option value="1:1">1:1 (carré)</option>
+              <option value="9:16">9:16 (portrait/story)</option>
+              <option value="4:3">4:3</option>
+              <option value="3:2">3:2 (photo classique)</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">NOMBRE DE PROMPTS</label>
+            <select class="fs" id="imgCount">
+              <option value="3">3 variantes</option>
+              <option value="5">5 variantes</option>
+              <option value="8">8 variantes</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <label class="fl">DESCRIPTION DU VISUEL SOUHAITÉ</label>
+          <textarea class="fi-area" id="imgDesc" placeholder="Ex: Technicien professionnel en combinaison de travail bleue inspectant une unité de climatisation Thermoking montée sur un camion frigorifique blanc, dans un garage industriel moderne, lumière naturelle dure, ambiance travail terrain authentique."></textarea>
+        </div>
+        <button class="btn-gen" id="btnImg" onclick="generatePrompts()">🤖 GÉNÉRER LES PROMPTS</button>
+      </div>
+
+      <div class="typing-row" id="imgTyping">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span>Génération des prompts...</span>
+      </div>
+
+      <div class="result-area" id="imgResult">
+        <div class="result-block">
+          <div class="rb-head" onclick="toggleRB('imgprompts')">
+            <div class="rb-icon">🤖</div>
+            <div class="rb-title">PROMPTS OPEN IMAGE 2.0</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('imgprompts')">📋 Copier tout</button>
+            <div class="rb-chev open" id="chev-imgprompts">▼</div>
+          </div>
+          <div class="rb-body open" id="body-imgprompts"></div>
+        </div>
+        <div class="result-block">
+          <div class="rb-head" onclick="toggleRB('imgtips')">
+            <div class="rb-icon">💡</div>
+            <div class="rb-title">CONSEILS D'UTILISATION & PARAMÈTRES</div>
+            <button class="rb-copy" onclick="event.stopPropagation();copyRB('imgtips')">📋 Copier</button>
+            <div class="rb-chev open" id="chev-imgtips">▼</div>
+          </div>
+          <div class="rb-body open" id="body-imgtips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAUVEGARDÉS -->
+    <div class="view" id="view-sauvegardes">
+      <div class="sec-title">PROJETS SAUVEGARDÉS</div>
+      <div class="proj-list" id="projList"></div>
+    </div>
+
+    <!-- DIRECTEUR ARTISTIQUE -->
+    <div class="view" id="view-da">
+      <div class="da-panel">
+        <div class="da-quick">
+          <button class="da-qbtn" onclick="daQ('Crée une identité visuelle complète pour mon activité freelance climatisation embarquée')">→ identité visuelle freelance</button>
+          <button class="da-qbtn" onclick="daQ('Quelle charte graphique pour une entreprise type distributeur Thermoking ?')">→ charte distributeur</button>
+          <button class="da-qbtn" onclick="daQ('Quelles couleurs et typographies pour un secteur technique et industriel ?')">→ couleurs & typo industrie</button>
+          <button class="da-qbtn" onclick="daQ('Comment créer des visuels cohérents sur LinkedIn, Instagram et Facebook ?')">→ cohérence multi-réseaux</button>
+          <button class="da-qbtn" onclick="daQ('Analyse les meilleures identités visuelles dans le secteur du transport réfrigéré')">→ benchmark visuel secteur</button>
+        </div>
+        <div class="da-chat" id="daChat"></div>
+        <div class="da-input-row">
+          <input class="da-input" id="daInp" placeholder="Ta question créative ou projet à discuter..." onkeydown="if(event.key==='Enter')daSend()"/>
+          <button class="da-send" onclick="daSend()">ENVOYER →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let daHistory=[],lastProjectData=null;
+let store=JSON.parse(localStorage.getItem('design_v1')||'{"projects":[]}');
+function vsave(){localStorage.setItem('design_v1',JSON.stringify(store));}
+
+async function callAPI(body){
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await res.json();return d.content?.find(b=>b.type==='text')?.text||'';
+}
+
+function showView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const map={projet:'NOUVEAU',prompts:'PROMPTS',sauvegardes:'SAUV',da:'DIRECT'};
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.includes(map[v]))b.classList.add('active');});
+  if(v==='sauvegardes')renderProjects();
+  if(v==='da'&&!daHistory.length)daWelcome();
+}
+
+function toggleRB(id){
+  const body=document.getElementById('body-'+id);
+  const chev=document.getElementById('chev-'+id);
+  if(body)body.classList.toggle('open');
+  if(chev)chev.classList.toggle('open');
+}
+
+function copyRB(id){
+  const body=document.getElementById('body-'+id);
+  if(!body)return;
+  navigator.clipboard.writeText(body.textContent).then(()=>{
+    const btn=document.querySelector(`#rb-${id} .rb-copy`)||document.querySelector(`.rb-copy`);
+    const allCopyBtns=document.querySelectorAll('.rb-copy');
+    allCopyBtns.forEach(b=>{if(b.onclick&&b.onclick.toString().includes(id)){b.textContent='✓ Copié!';b.classList.add('copied');setTimeout(()=>{b.textContent='📋 Copier';b.classList.remove('copied');},2000);}});
+  });
+}
+
+function formatResult(text){
+  return text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/__(.*?)__/g,'<em>$1</em>').replace(/\n/g,'<br>');
+}
+
+async function generateProject(){
+  const type=document.getElementById('projType').value;
+  const style=document.getElementById('projStyle').value;
+  const format=document.getElementById('projFormat').value;
+  const pages=document.getElementById('projPages').value;
+  const desc=document.getElementById('projDesc').value.trim();
+  const colors=document.getElementById('projColors').value.trim();
+
+  if(!desc){alert('Décris le projet avant de générer.');return;}
+  const btn=document.getElementById('btnProj');
+  btn.disabled=true;
+  document.getElementById('projTyping').classList.add('visible');
+  document.getElementById('projResult').classList.remove('visible');
+
+  const typeLabels={site:'Site web / landing page',affiche:'Affiche / Poster',flyer:'Flyer recto/verso',presentation:'Présentation multi-pages',carte:'Carte de visite',logo:'Identité visuelle / Logo',reseaux:'Visuels réseaux sociaux',brochure:'Brochure / Catalogue'};
+
+  const sys=`Tu es un directeur artistique senior avec 15 ans d'expérience, spécialisé dans les identités visuelles pour les secteurs techniques et industriels (transport, mécanique, énergie). Tu travailles avec rigueur, précision et créativité. Tu fournis des directions artistiques professionnelles et actionnables.`;
+
+  const prompt=`Projet : ${typeLabels[type]}
+Format : ${format} — ${pages} page(s)
+Univers visuel : ${style}
+Description : ${desc}
+${colors?`Contraintes couleurs : ${colors}`:'Palette : à définir selon le brief'}
+
+Génère une direction artistique complète structurée en 5 sections séparées par "===SECTION===":
+
+===SECTION=== CHARTE GRAPHIQUE
+Palette de couleurs principale (3-5 couleurs avec codes HEX précis et rôle de chaque couleur)
+Typographies (primaire + secondaire avec justification du choix)
+Style graphique (description précise : géométrique/organique, plein/aéré, contrasté/doux, etc.)
+Éléments graphiques récurrents (formes, textures, motifs, icônes)
+Ton visuel général
+
+===SECTION=== MOODBOARD & RÉFÉRENCES
+5-7 références visuelles précises (marques, campagnes, designers — avec description de ce qu'on en retient)
+Ambiances photographiques à rechercher
+Ce qu'il faut absolument éviter (contre-exemples)
+Mots-clés visuels (5-8 adjectifs qui résument l'univers)
+
+===SECTION=== SCRIPT CANVA PAGE PAR PAGE
+Pour chaque page/slide, détaille précisément :
+PAGE X :
+- Layout : description de la structure (colonnes, zones, hiérarchie)
+- Fond : couleur exacte (HEX) ou type de fond
+- Éléments visuels : position, taille relative, type
+- Textes : contenu suggéré, taille relative (H1/H2/corps), couleur, police
+- Visuels/images : description précise de ce qu'il faut mettre et où
+- Effets : ombres, dégradés, transparences si pertinent
+
+===SECTION=== PROMPTS OPEN IMAGE 2.0
+${parseInt(pages)>1?Math.min(parseInt(pages),5):3} prompts optimisés pour Open Image 2.0, un par visuel nécessaire au projet.
+Chaque prompt doit être en anglais, ultra-détaillé, et inclure : sujet, style photographique, éclairage, ambiance, composition, qualité technique.
+Format : PROMPT X : [prompt complet en anglais]
+Suivi de : NEGATIVE PROMPT : [éléments à exclure]
+
+===SECTION=== BRIEF GRAPHISTE
+Document complet prêt à transmettre à un graphiste ou freelance :
+- Contexte et objectifs
+- Cible et message clé
+- Contraintes techniques
+- Livrables attendus
+- Références obligatoires
+- Points non négociables`;
+
+  try{
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:4000,system:sys,messages:[{role:'user',content:prompt}]});
+    const sections=reply.split('===SECTION===').filter(s=>s.trim());
+    const ids=['charte','moodboard','canva','prompts','brief'];
+    sections.forEach((sec,i)=>{
+      if(ids[i]){
+        const lines=sec.trim().split('\n');
+        const content=lines.slice(1).join('\n').trim();
+        document.getElementById('body-'+ids[i]).innerHTML=formatResult(content);
+      }
+    });
+    lastProjectData={type,style,format,pages,desc,colors,sections:reply,savedAt:new Date().toISOString()};
+    document.getElementById('projResult').classList.add('visible');
+  }catch(e){alert('Erreur : '+e.message);}
+
+  document.getElementById('projTyping').classList.remove('visible');
+  btn.disabled=false;
+}
+
+function saveProject(){
+  if(!lastProjectData)return;
+  const name=document.getElementById('projDesc').value.slice(0,50)+'...';
+  store.projects.push({id:Date.now(),name,...lastProjectData});
+  vsave();updateSavedCount();
+  const btn=event.target;btn.textContent='✓ Sauvegardé';
+  setTimeout(()=>{btn.textContent='⭐ Sauvegarder le projet';},2000);
+}
+
+function updateSavedCount(){const el=document.getElementById('savedCount');el.textContent=store.projects.length?`(${store.projects.length})`:'';  }
+
+function renderProjects(){
+  const el=document.getElementById('projList');
+  if(!store.projects.length){el.innerHTML='<div class="empty">Aucun projet sauvegardé.</div>';return;}
+  el.innerHTML=[...store.projects].reverse().map(p=>`
+    <div class="proj-card">
+      <div class="proj-head">
+        <div class="proj-name">${p.name}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="proj-type">${p.type} · ${p.format}</div>
+          <div class="proj-date">${new Date(p.savedAt).toLocaleDateString('fr-FR')}</div>
+          <button class="proj-del" onclick="delProject(${p.id})">×</button>
+        </div>
+      </div>
+      <div class="proj-body">
+        <div class="proj-section">
+          <div class="proj-section-title">DESCRIPTION</div>
+          <div class="proj-section-content">${p.desc.slice(0,200)}${p.desc.length>200?'...':''}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn-expand" onclick="expandProject(${p.id})">Voir la DA complète</button>
+          <button class="btn-expand" style="border-color:var(--accent);color:var(--accent);" onclick="copyProject(${p.id})">📋 Copier tout</button>
+        </div>
+        <div class="proj-section" id="expand_${p.id}" style="display:none;margin-top:12px;">
+          <div class="proj-section-content">${formatResult(p.sections)}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function expandProject(id){
+  const el=document.getElementById('expand_'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+function copyProject(id){
+  const p=store.projects.find(x=>x.id===id);
+  if(p)navigator.clipboard.writeText(p.sections);
+}
+function delProject(id){store.projects=store.projects.filter(p=>p.id!==id);vsave();renderProjects();updateSavedCount();}
+
+/* PROMPTS IMAGE */
+async function generatePrompts(){
+  const type=document.getElementById('imgType').value;
+  const style=document.getElementById('imgStyle').value;
+  const ratio=document.getElementById('imgRatio').value;
+  const count=document.getElementById('imgCount').value;
+  const desc=document.getElementById('imgDesc').value.trim();
+  if(!desc){alert('Décris le visuel souhaité.');return;}
+  const btn=document.getElementById('btnImg');
+  btn.disabled=true;
+  document.getElementById('imgTyping').classList.add('visible');
+  document.getElementById('imgResult').classList.remove('visible');
+
+  const sys=`Tu es un expert en prompt engineering pour les modèles de génération d'images, spécialisé dans Open Image 2.0 (flux). Tu génères des prompts ultra-précis, efficaces et professionnels en anglais.`;
+
+  const prompt=`Génère ${count} prompts Open Image 2.0 pour : ${desc}
+Type de visuel : ${type} | Style : ${style} | Ratio : ${ratio}
+
+Pour chaque prompt :
+PROMPT [N] :
+[Prompt principal en anglais — ultra-détaillé, 80-150 mots, incluant : sujet principal, contexte/décor, éclairage précis, style photographique, composition, palette de couleurs, ambiance, qualité technique (8K, photorealistic, etc.)]
+
+NEGATIVE PROMPT [N] :
+[Éléments à exclure]
+
+PARAMÈTRES RECOMMANDÉS [N] :
+[Steps, CFG scale, sampler conseillés pour ce type de visuel]
+
+Ensuite, une section CONSEILS D'UTILISATION avec les meilleures pratiques Open Image 2.0 pour ce type de projet.`;
+
+  try{
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:3000,system:sys,messages:[{role:'user',content:prompt}]});
+    const parts=reply.split('CONSEILS D\'UTILISATION');
+    document.getElementById('body-imgprompts').innerHTML=formatResult(parts[0].trim());
+    document.getElementById('body-imgtips').innerHTML=formatResult(parts[1]?parts[1].trim():'Utilise les paramètres recommandés pour chaque prompt et ajuste le CFG scale selon le niveau de fidélité souhaité.');
+    document.getElementById('imgResult').classList.add('visible');
+  }catch(e){alert('Erreur : '+e.message);}
+  document.getElementById('imgTyping').classList.remove('visible');
+  btn.disabled=false;
+}
+
+/* DA CHAT */
+function daWelcome(){addDAMsg('agent',`**Directeur artistique actif.**\n\nJe connais ton univers : technicien climatisation embarquée, secteur transport réfrigéré, construction d'une réputation freelance et préparation d'une structure distributeur Thermoking.\n\nJe peux travailler sur ton identité visuelle globale, une charte graphique, analyser des références du secteur, ou t'accompagner sur n'importe quel projet créatif.\n\nDe quoi as-tu besoin ?`);}
+
+function addDAMsg(role,html){
+  const chat=document.getElementById('daChat');
+  const div=document.createElement('div');div.className='da-msg '+(role==='user'?'user':'');
+  const av=document.createElement('div');av.className='da-av '+(role==='agent'?'agent':'');av.textContent=role==='user'?'E':'✦';
+  const bub=document.createElement('div');bub.className='da-bub';
+  bub.innerHTML=html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;
+}
+function addDATyping(){const chat=document.getElementById('daChat');const div=document.createElement('div');div.className='da-msg';div.id='daTyping';const av=document.createElement('div');av.className='da-av agent';av.textContent='✦';const bub=document.createElement('div');bub.className='da-bub';bub.innerHTML='<div class="typing-b"><div class="td"></div><div class="td"></div><div class="td"></div></div>';div.appendChild(av);div.appendChild(bub);chat.appendChild(div);chat.scrollTop=chat.scrollHeight;}
+
+async function daSend(){
+  const inp=document.getElementById('daInp');const text=inp.value.trim();
+  if(!text||document.getElementById('daTyping'))return;
+  inp.value='';addDAMsg('user',text);daHistory.push({role:'user',content:text});addDATyping();
+  const sys=`Tu es un directeur artistique senior avec 15 ans d'expérience, spécialisé dans les identités visuelles pour les secteurs techniques et industriels. Tu travailles pour Evan, technicien climatisation embarquée en formation chez Frigicoll (Thermoking), basé à Palma de Mallorca, qui construit sa réputation freelance et prépare une future structure distributeur. Conseils précis, professionnels, actionnables. Français uniquement. Jamais de généralités vides.`;
+  try{
+    const reply=await callAPI({model:'claude-sonnet-4-6',max_tokens:1200,system:sys,messages:daHistory});
+    document.getElementById('daTyping')?.remove();addDAMsg('agent',reply);daHistory.push({role:'assistant',content:reply});
+  }catch(e){document.getElementById('daTyping')?.remove();addDAMsg('agent','Erreur : '+e.message);}
+}
+function daQ(t){document.getElementById('daInp').value=t;daSend();}
+
+updateSavedCount();
+</script>
+</body>
+</html>
