@@ -47,7 +47,35 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 .card-arrow{font-size:13px;color:var(--dim);transition:all .15s;}
 .card:hover .card-arrow{transform:translate(2px,-2px);}
 
-/* ADD CARD */
+/* WIDGET CALENDRIER */
+.cal-widget{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:2rem;}
+.cal-widget-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+.cal-widget-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.cal-widget-date{font-size:12px;color:var(--muted);}
+.cal-btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+.cal-btn{padding:6px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);background:transparent;color:var(--muted);}
+.cal-btn:hover{border-color:var(--text);color:var(--text);}
+.cal-btn.primary{background:#1a73e8;border-color:#1a73e8;color:#fff;}
+.cal-btn.primary:hover{background:#1557b0;border-color:#1557b0;}
+.cal-btn.green{background:#16a34a;border-color:#16a34a;color:#fff;}
+.cal-btn.green:hover{background:#14532d;border-color:#14532d;}
+.cal-add-form{display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+.cal-add-form.open{display:block;}
+.cal-form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.cal-input{flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:var(--body);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;}
+.cal-input:focus{border-color:#1a73e8;}
+.cal-input-sm{width:140px;flex:none;}
+.cal-submit{padding:8px 16px;background:#1a73e8;border:none;border-radius:6px;color:#fff;font-family:var(--mono);font-size:12px;cursor:pointer;transition:background .15s;}
+.cal-submit:hover{background:#1557b0;}
+.cal-submit:disabled{opacity:.5;cursor:not-allowed;}
+.cal-feedback{font-size:12px;color:#16a34a;font-family:var(--mono);margin-top:6px;display:none;}
+.cal-feedback.err{color:#dc2626;}
+.cal-tip{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
+.cal-divider{height:1px;background:var(--border);margin:1rem 0;}
+.cal-quick-label{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;}
+.cal-quick-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.cal-quick-btn{padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--body);}
+.cal-quick-btn:hover{border-color:#1a73e8;color:#1a73e8;}
 .card-add{background:transparent;border:1.5px dashed var(--border);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;cursor:default;opacity:.5;}
 .card-add-icon{font-size:20px;margin-bottom:6px;color:var(--dim);}
 .card-add-label{font-family:var(--mono);font-size:10px;color:var(--dim);}
@@ -210,6 +238,54 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
     </div>
   </div>
 
+  <!-- WIDGET CALENDRIER -->
+  <div class="cal-widget">
+    <div class="cal-widget-head">
+      <div class="cal-widget-title">
+        📅 Google Calendar
+        <span class="cal-widget-date" id="calDateLabel"></span>
+      </div>
+      <div class="cal-btn-row">
+        <a class="cal-btn primary" id="btnViewToday" href="#" target="_blank">📅 Voir aujourd'hui</a>
+        <a class="cal-btn" id="btnViewWeek" href="#" target="_blank">🗓 Semaine</a>
+        <a class="cal-btn" id="btnViewMonth" href="#" target="_blank">📆 Mois</a>
+        <button class="cal-btn green" onclick="toggleAddForm()">+ Ajouter un événement</button>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE AJOUT -->
+    <div class="cal-add-form" id="calAddForm">
+      <div class="cal-form-row">
+        <input class="cal-input" id="evTitle" placeholder="Titre de l'événement *" />
+        <input class="cal-input cal-input-sm" id="evDate" type="date" />
+      </div>
+      <div class="cal-form-row">
+        <input class="cal-input cal-input-sm" id="evStart" type="time" value="09:00" />
+        <input class="cal-input cal-input-sm" id="evEnd" type="time" value="10:00" />
+        <input class="cal-input" id="evLocation" placeholder="Lieu (optionnel)" />
+      </div>
+      <div class="cal-form-row">
+        <input class="cal-input" id="evDesc" placeholder="Description / notes (optionnel)" />
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="cal-submit" onclick="openEventInCalendar()">Ouvrir dans Google Calendar →</button>
+        <button style="padding:7px 12px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer;" onclick="toggleAddForm()">Annuler</button>
+      </div>
+      <div class="cal-tip">💡 L'événement s'ouvrira dans Google Calendar pré-rempli — tu confirmes en cliquant "Enregistrer".</div>
+
+      <div class="cal-divider"></div>
+      <div class="cal-quick-label">RACCOURCIS RAPIDES :</div>
+      <div class="cal-quick-btns">
+        <button class="cal-quick-btn" onclick="quickEvent('Réunion Frigicoll',1)">Réunion Frigicoll</button>
+        <button class="cal-quick-btn" onclick="quickEvent('Formation climatisation',2)">Formation clim</button>
+        <button class="cal-quick-btn" onclick="quickEvent('RDV médecin',1)">RDV médecin</button>
+        <button class="cal-quick-btn" onclick="quickEvent('Appel client',0.5)">Appel client</button>
+        <button class="cal-quick-btn" onclick="quickEvent('Déplacement Barcelona',3)">Déplacement BCN</button>
+        <button class="cal-quick-btn" onclick="quickEvent('Entretien',1)">Entretien</button>
+      </div>
+    </div>
+  </div>
+
   <div class="footer">
     <span>mes-agents.vercel.app</span> · Propulsé par Claude Sonnet · Clé API sécurisée via Vercel
   </div>
@@ -219,6 +295,58 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 const now=new Date();
 const fr=now.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 document.getElementById('dateEl').textContent=fr.charAt(0).toUpperCase()+fr.slice(1);
+
+// CALENDRIER
+function pad(n){return String(n).padStart(2,'0');}
+function toGCalDate(d){return`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;}
+
+function initCalendar(){
+  const today=new Date();
+  const d=toGCalDate(today);
+  const weekEnd=new Date(today);weekEnd.setDate(weekEnd.getDate()+6);
+  const fr2=today.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('calDateLabel').textContent=fr2.charAt(0).toUpperCase()+fr2.slice(1);
+  document.getElementById('btnViewToday').href=`https://calendar.google.com/calendar/r/day/${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+  document.getElementById('btnViewWeek').href=`https://calendar.google.com/calendar/r/week/${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+  document.getElementById('btnViewMonth').href=`https://calendar.google.com/calendar/r/month/${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+  // Date par défaut = aujourd'hui
+  document.getElementById('evDate').value=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+}
+
+function toggleAddForm(){
+  const f=document.getElementById('calAddForm');
+  f.classList.toggle('open');
+}
+
+function openEventInCalendar(){
+  const title=document.getElementById('evTitle').value.trim();
+  if(!title){document.getElementById('evTitle').focus();return;}
+  const date=document.getElementById('evDate').value.replace(/-/g,'');
+  const start=document.getElementById('evStart').value.replace(':','');
+  const end=document.getElementById('evEnd').value.replace(':','');
+  const loc=encodeURIComponent(document.getElementById('evLocation').value.trim());
+  const desc=encodeURIComponent(document.getElementById('evDesc').value.trim());
+  const startDt=`${date}T${start}00`;
+  const endDt=`${date}T${end}00`;
+  let url=`https://calendar.google.com/calendar/render?action=TEMPLATE`;
+  url+=`&text=${encodeURIComponent(title)}`;
+  url+=`&dates=${startDt}/${endDt}`;
+  if(loc)url+=`&location=${loc}`;
+  if(desc)url+=`&details=${desc}`;
+  window.open(url,'_blank');
+}
+
+function quickEvent(title,durationH){
+  document.getElementById('evTitle').value=title;
+  const startH=parseInt(document.getElementById('evStart').value.split(':')[0])||9;
+  const endH=startH+Math.floor(durationH);
+  const endM=durationH%1===0.5?30:0;
+  document.getElementById('evEnd').value=`${pad(endH)}:${pad(endM)}`;
+  if(!document.getElementById('calAddForm').classList.contains('open'))toggleAddForm();
+  document.getElementById('evTitle').focus();
+}
+
+initCalendar();
 </script>
 </body>
 </html>
