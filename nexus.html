@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — Evan</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050810;
+  --bg2:#080d1a;
+  --glass:rgba(10,20,50,0.6);
+  --glass2:rgba(15,30,70,0.4);
+  --border:rgba(0,200,255,0.15);
+  --border2:rgba(0,200,255,0.08);
+  --cyan:#00c8ff;
+  --cyan2:#00e5ff;
+  --cyan-dim:rgba(0,200,255,0.6);
+  --purple:#7b5ea7;
+  --purple2:#a78bfa;
+  --green:#00ff9d;
+  --orange:#ff9500;
+  --red:#ff4757;
+  --text:#e8f4ff;
+  --text2:#8ba8c8;
+  --text3:#4a6480;
+  --mono:'JetBrains Mono',monospace;
+  --title:'Orbitron',sans-serif;
+  --body:'Inter',sans-serif;
+  --glow:0 0 20px rgba(0,200,255,0.3);
+  --glow2:0 0 40px rgba(0,200,255,0.15);
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;}
+
+/* ANIMATED BG */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(0,80,160,0.12) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 50% at 80% 80%,rgba(60,0,120,0.1) 0%,transparent 60%),
+             radial-gradient(ellipse 100% 100% at 50% 50%,rgba(0,200,255,0.03) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* GRID OVERLAY */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(0,200,255,0.03) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,200,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+/* LAYOUT */
+.nexus-shell{position:relative;z-index:1;display:grid;grid-template-columns:260px 1fr;grid-template-rows:auto 1fr;min-height:100vh;gap:0;}
+.nexus-header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border);background:rgba(5,8,16,0.85);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;}
+
+/* HEADER */
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-mark{width:36px;height:36px;border:2px solid var(--cyan);border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.logo-mark::before{content:'';position:absolute;inset:-2px;background:conic-gradient(from 0deg,var(--cyan),transparent,var(--cyan));animation:spin 4s linear infinite;opacity:0.4;}
+.logo-mark::after{content:'N';font-family:var(--title);font-size:16px;font-weight:900;color:var(--cyan);position:relative;z-index:1;text-shadow:0 0 10px var(--cyan);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.logo-text{font-family:var(--title);font-size:18px;font-weight:700;color:var(--text);letter-spacing:.15em;}
+.logo-text span{color:var(--cyan);}
+.logo-sub{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-top:2px;}
+
+.header-center{display:flex;align-items:center;gap:24px;}
+.header-status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text3);}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.9);}}
+
+.header-time{font-family:var(--title);font-size:14px;color:var(--cyan);letter-spacing:.1em;text-shadow:var(--glow);}
+.header-date{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;}
+
+.header-right{display:flex;align-items:center;gap:12px;}
+.mic-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--glass);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s;position:relative;overflow:hidden;}
+.mic-btn:hover{border-color:var(--cyan);box-shadow:var(--glow);}
+.mic-btn.listening{border-color:var(--red);background:rgba(255,71,87,0.15);box-shadow:0 0 20px rgba(255,71,87,0.4);animation:mic-pulse 1s infinite;}
+.mic-btn.speaking{border-color:var(--cyan);background:rgba(0,200,255,0.1);box-shadow:var(--glow);animation:speak-pulse 0.5s infinite alternate;}
+@keyframes mic-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+@keyframes speak-pulse{from{box-shadow:0 0 10px var(--cyan);}to{box-shadow:0 0 30px var(--cyan);}}
+
+/* SIDEBAR */
+.nexus-sidebar{background:rgba(5,8,16,0.7);backdrop-filter:blur(20px);border-right:1px solid var(--border2);padding:24px 0;overflow-y:auto;}
+.sidebar-section{margin-bottom:8px;}
+.sidebar-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;padding:0 20px 8px;text-transform:uppercase;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:all .2s;border-left:2px solid transparent;text-decoration:none;color:var(--text2);font-size:13px;}
+.sidebar-item:hover{background:rgba(0,200,255,0.05);color:var(--text);border-left-color:rgba(0,200,255,0.3);}
+.sidebar-item.active{background:rgba(0,200,255,0.08);color:var(--cyan);border-left-color:var(--cyan);}
+.sidebar-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-item-name{font-family:var(--body);font-size:12px;font-weight:500;}
+.sidebar-badge{margin-left:auto;font-family:var(--mono);font-size:9px;background:rgba(0,200,255,0.15);color:var(--cyan);padding:2px 6px;border-radius:10px;}
+
+.sidebar-divider{height:1px;background:var(--border2);margin:12px 20px;}
+
+/* MAIN CONTENT */
+.nexus-main{padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;}
+
+/* VOICE COMMAND BAR */
+.voice-bar{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;transition:all .3s;}
+.voice-bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,200,255,0.05),transparent);pointer-events:none;}
+.voice-bar.active{border-color:var(--cyan);box-shadow:var(--glow);}
+.voice-bar.speaking{border-color:var(--purple2);box-shadow:0 0 20px rgba(167,139,250,0.3);}
+.voice-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--body);font-size:14px;caret-color:var(--cyan);}
+.voice-input::placeholder{color:var(--text3);}
+.voice-waveform{display:flex;align-items:center;gap:3px;height:24px;}
+.wave-bar{width:3px;border-radius:2px;background:var(--cyan);animation:wave 1s ease-in-out infinite;}
+.wave-bar:nth-child(1){height:8px;animation-delay:0s;}
+.wave-bar:nth-child(2){height:16px;animation-delay:.1s;}
+.wave-bar:nth-child(3){height:24px;animation-delay:.2s;}
+.wave-bar:nth-child(4){height:16px;animation-delay:.3s;}
+.wave-bar:nth-child(5){height:8px;animation-delay:.4s;}
+@keyframes wave{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.5);}}
+.wave-container{display:none;}
+.voice-bar.listening .wave-container{display:flex;}
+.send-btn{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),rgba(0,120,200,0.8));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;}
+.send-btn:hover{transform:scale(1.05);box-shadow:var(--glow);}
+
+/* NEXUS RESPONSE */
+.nexus-response{background:var(--glass2);border:1px solid var(--border2);border-radius:12px;padding:14px 18px;font-size:13px;line-height:1.7;color:var(--text2);display:none;position:relative;}
+.nexus-response.visible{display:block;}
+.nexus-response::before{content:'NEXUS';font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:.1em;display:block;margin-bottom:8px;opacity:.7;}
+.typing-cursor{display:inline-block;width:2px;height:14px;background:var(--cyan);animation:blink .7s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* DASHBOARD GRID */
+.dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.dashboard-grid.wide{grid-template-columns:repeat(4,1fr);}
+
+/* MODULES */
+.module{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border2);border-radius:16px;padding:18px;transition:all .3s;position:relative;overflow:hidden;}
+.module:hover{border-color:rgba(0,200,255,0.25);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.module::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity .3s;}
+.module:hover::before{opacity:1;}
+.module-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.module-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;}
+.module-icon{font-size:16px;}
+.module-value{font-family:var(--title);font-size:28px;font-weight:700;color:var(--text);line-height:1;}
+.module-sub{font-size:11px;color:var(--text3);margin-top:6px;}
+.module-tag{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:6px;margin-top:8px;}
+.module-tag.green{background:rgba(0,255,157,0.1);color:var(--green);border:1px solid rgba(0,255,157,0.2);}
+.module-tag.red{background:rgba(255,71,87,0.1);color:var(--red);border:1px solid rgba(255,71,87,0.2);}
+.module-tag.cyan{background:rgba(0,200,255,0.1);color:var(--cyan);border:1px solid rgba(0,200,255,0.2);}
+.module-tag.orange{background:rgba(255,149,0,0.1);color:var(--orange);border:1px solid rgba(255,149,0,0.2);}
+
+/* MODULE SIZES */
+.module-large{grid-column:span 2;}
+.module-tall{grid-row:span 2;}
+
+/* CLOCK MODULE */
+.clock-main{font-family:var(--title);font-size:48px;font-weight:700;color:var(--text);line-height:1;letter-spacing:.05em;text-shadow:0 0 30px rgba(0,200,255,0.3);}
+.clock-seconds{color:var(--cyan);}
+.clock-location{display:flex;align-items:center;gap:6px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* WEATHER MODULE */
+.weather-main{display:flex;align-items:center;gap:16px;}
+.weather-icon{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,200,0,0.4));}
+.weather-temp{font-family:var(--title);font-size:36px;font-weight:700;color:var(--text);}
+.weather-details{font-family:var(--mono);font-size:10px;color:var(--text3);line-height:1.8;}
+
+/* AGENTS MODULE */
+.agents-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.agent-item{background:rgba(0,200,255,0.04);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s;text-decoration:none;display:block;}
+.agent-item:hover{background:rgba(0,200,255,0.08);border-color:rgba(0,200,255,0.2);}
+.agent-item-name{font-family:var(--mono);font-size:10px;color:var(--text);font-weight:500;margin-bottom:3px;}
+.agent-item-desc{font-size:10px;color:var(--text3);line-height:1.4;}
+.agent-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:4px;}
+
+/* NEWS MODULE */
+.news-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.news-item{padding:8px 10px;background:rgba(0,200,255,0.03);border-left:2px solid var(--border2);border-radius:0 8px 8px 0;transition:all .2s;cursor:pointer;}
+.news-item:hover{border-left-color:var(--cyan);background:rgba(0,200,255,0.06);}
+.news-title{font-size:11px;color:var(--text2);line-height:1.4;margin-bottom:3px;}
+.news-meta{font-family:var(--mono);font-size:9px;color:var(--text3);}
+.news-flag{margin-right:4px;}
+
+/* CALENDAR MODULE */
+.cal-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.cal-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(0,200,255,0.03);border-radius:8px;}
+.cal-time{font-family:var(--mono);font-size:10px;color:var(--cyan);width:45px;flex-shrink:0;}
+.cal-title{font-size:11px;color:var(--text2);}
+.cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* FINANCE MODULE */
+.finance-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);}
+.finance-row:last-child{border-bottom:none;}
+.finance-label{font-size:11px;color:var(--text3);}
+.finance-value{font-family:var(--mono);font-size:12px;color:var(--text);}
+.finance-value.positive{color:var(--green);}
+.finance-value.negative{color:var(--red);}
+
+/* NEXUS POLES */
+.poles-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px;}
+.pole-item{background:rgba(123,94,167,0.08);border:1px solid rgba(123,94,167,0.2);border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:all .2s;}
+.pole-item:hover{background:rgba(123,94,167,0.15);transform:scale(1.02);}
+.pole-name{font-family:var(--mono);font-size:9px;color:var(--purple2);letter-spacing:.05em;}
+.pole-status{font-size:9px;color:var(--text3);margin-top:2px;}
+
+/* AGENT PANEL OVERLAY */
+.agent-panel{position:fixed;right:0;top:0;bottom:0;width:600px;background:rgba(5,8,16,0.97);backdrop-filter:blur(30px);border-left:1px solid var(--border);z-index:1000;transform:translateX(100%);transition:transform .4s cubic-bezier(.25,.46,.45,.94);overflow:hidden;display:flex;flex-direction:column;}
+.agent-panel.open{transform:translateX(0);}
+.panel-header{padding:20px 24px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-family:var(--title);font-size:14px;color:var(--cyan);letter-spacing:.1em;}
+.panel-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.panel-close:hover{border-color:var(--red);color:var(--red);}
+.panel-content{flex:1;overflow:hidden;}
+.panel-iframe{width:100%;height:100%;border:none;}
+
+/* MEMORY INDICATOR */
+.memory-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.1);border-radius:8px;margin-top:8px;}
+.memory-icon{font-size:12px;}
+.memory-text{font-family:var(--mono);font-size:9px;color:var(--text3);flex:1;}
+.memory-count{font-family:var(--mono);font-size:9px;color:var(--purple2);}
+
+/* LOADING SKELETON */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:skeleton 1.5s infinite;border-radius:6px;height:14px;margin-top:6px;}
+@keyframes skeleton{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan-dim);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(0,200,255,0.1);border:1px solid var(--cyan);border-radius:12px;padding:12px 20px;font-family:var(--mono);font-size:11px;color:var(--cyan);z-index:9999;transform:translateY(100px);opacity:0;transition:all .4s;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* MEMORY PANEL */
+.memory-panel{position:fixed;left:0;top:0;bottom:0;width:380px;background:rgba(5,8,16,0.97);backdrop-filter:blur(30px);border-right:1px solid var(--border);z-index:1000;transform:translateX(-100%);transition:transform .4s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;}
+.memory-panel.open{transform:translateX(0);}
+.memory-panel-header{padding:20px 24px;border-bottom:1px solid var(--border2);}
+.memory-panel-title{font-family:var(--title);font-size:12px;color:var(--purple2);letter-spacing:.15em;margin-bottom:4px;}
+.memory-entries{flex:1;overflow-y:auto;padding:16px;}
+.memory-entry{background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.1);border-radius:10px;padding:12px;margin-bottom:8px;}
+.memory-entry-date{font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px;}
+.memory-entry-text{font-size:11px;color:var(--text2);line-height:1.5;}
+.memory-entry-tag{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:4px;margin-top:6px;display:inline-block;}
+
+/* PANEL OVERLAY BG */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;opacity:0;pointer-events:none;transition:opacity .4s;}
+.panel-overlay.show{opacity:1;pointer-events:all;}
+
+/* RESPONSIVE tweaks */
+@media(max-width:1200px){
+  .dashboard-grid{grid-template-columns:repeat(2,1fr);}
+  .module-large{grid-column:span 1;}
+}
+</style>
+</head>
+<body>
+
+<!-- AGENT PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="agent-panel" id="agentPanel">
+  <div class="panel-header">
+    <span class="panel-title" id="panelTitle">AGENT</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-content">
+    <iframe class="panel-iframe" id="panelIframe" src=""></iframe>
+  </div>
+</div>
+
+<!-- MEMORY PANEL -->
+<div class="memory-panel" id="memoryPanel">
+  <div class="memory-panel-header">
+    <div class="memory-panel-title">MÉMOIRE — NEXUS</div>
+    <div style="font-size:10px;color:var(--text3);font-family:var(--mono);">Tout ce que je retiens</div>
+  </div>
+  <div class="memory-entries" id="memoryEntries">
+    <div class="skeleton"></div><div class="skeleton" style="width:80%;margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="nexus-shell">
+
+  <!-- HEADER -->
+  <header class="nexus-header">
+    <div class="logo">
+      <div class="logo-mark"></div>
+      <div>
+        <div class="logo-text">NEX<span>US</span></div>
+        <div class="logo-sub">SYSTÈME PERSONNEL · PALMA DE MALLORCA</div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span id="nexusStatus">En ligne</span>
+      </div>
+      <div>
+        <div class="header-time" id="headerTime">--:--</div>
+        <div class="header-date" id="headerDate">---</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="mic-btn" id="micBtn" onclick="toggleListening()" title="Parle à NEXUS">🎤</button>
+      <button class="mic-btn" onclick="toggleMemoryPanel()" title="Mémoire NEXUS" style="font-size:14px;">🧠</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="nexus-sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="#" class="sidebar-item active" onclick="showView('dashboard',this)">
+        <span class="sidebar-icon">⬡</span>
+        <span class="sidebar-item-name">Dashboard</span>
+      </a>
+      <a href="#" class="sidebar-item" onclick="showView('news',this)">
+        <span class="sidebar-icon">📡</span>
+        <span class="sidebar-item-name">Veille</span>
+        <span class="sidebar-badge">Live</span>
+      </a>
+      <a href="#" class="sidebar-item" onclick="showView('calendar',this)">
+        <span class="sidebar-icon">📅</span>
+        <span class="sidebar-item-name">Agenda</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Étude</div>
+      <a href="#" class="sidebar-item" onclick="openAgent('mentor.html','MENTOR CLIM')">
+        <span class="sidebar-icon">🧊</span>
+        <span class="sidebar-item-name">Mentor Clim</span>
+        <span class="sidebar-badge" style="background:rgba(0,255,157,0.1);color:var(--green);">Actif</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Travail</div>
+      <a href="#" class="sidebar-item" onclick="openAgent('comptable.html','COMPTABLE')">
+        <span class="sidebar-icon">💰</span>
+        <span class="sidebar-item-name">Comptable</span>
+      </a>
+      <a href="#" class="sidebar-item" onclick="openAgent('design.html','DESIGN & DA')">
+        <span class="sidebar-icon">✦</span>
+        <span class="sidebar-item-name">Design & DA</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Perso</div>
+      <a href="#" class="sidebar-item" onclick="openAgent('reseaux.html','RÉSEAUX SOCIAUX')">
+        <span class="sidebar-icon">📱</span>
+        <span class="sidebar-item-name">Réseaux Sociaux</span>
+      </a>
+      <a href="#" class="sidebar-item" onclick="openAgent('veille.html','VEILLE')">
+        <span class="sidebar-icon">🌐</span>
+        <span class="sidebar-item-name">Veille</span>
+      </a>
+      <a href="#" class="sidebar-item" onclick="openAgent('mindmap.html','MINDMAP NEXUS')">
+        <span class="sidebar-icon">🧠</span>
+        <span class="sidebar-item-name">Mindmap Nexus</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Holding NEXUS</div>
+      <a href="#" class="sidebar-item" onclick="showView('nexus',this)">
+        <span class="sidebar-icon">◈</span>
+        <span class="sidebar-item-name">Vue d'ensemble</span>
+      </a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div style="padding:12px 20px;">
+      <a href="index.html" class="sidebar-item" style="border-radius:8px;border:1px solid var(--border2);">
+        <span class="sidebar-icon">↩</span>
+        <span class="sidebar-item-name">Mes Agents</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="nexus-main" id="nexusMain">
+
+    <!-- VOICE BAR -->
+    <div class="voice-bar" id="voiceBar">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--cyan);opacity:.7;white-space:nowrap;">NEXUS ›</div>
+      <input class="voice-input" id="voiceInput" placeholder="Parle ou écris... (FR / EN / ES)" onkeydown="handleInputKey(event)">
+      <div class="wave-container" id="waveContainer">
+        <div class="voice-waveform">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+      </div>
+      <button class="send-btn" onclick="sendMessage()">›</button>
+    </div>
+    <div class="nexus-response" id="nexusResponse"></div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard">
+      <div class="dashboard-grid">
+        <!-- CLOCK -->
+        <div class="module">
+          <div class="module-header">
+            <span class="module-label">Heure locale</span>
+            <span class="module-icon">⏱</span>
+          </div>
+          <div class="clock-main" id="clockMain">--<span class="clock-seconds">:--</span></div>
+          <div class="clock-location">📍 Palma de Mallorca, Espagne</div>
+          <div class="module-sub" id="clockDate" style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--cyan);">---</div>
+        </div>
+
+        <!-- WEATHER -->
+        <div class="module">
+          <div class="module-header">
+            <span class="module-label">Météo — Palma</span>
+            <span class="module-icon">🌤</span>
+          </div>
+          <div class="weather-main">
+            <div class="weather-icon" id="weatherIcon">☀️</div>
+            <div>
+              <div class="weather-temp" id="weatherTemp">--°</div>
+              <div class="weather-details" id="weatherDetails">Chargement...</div>
+            </div>
+          </div>
+          <div class="module-tag cyan" id="weatherTag">Palma · ES</div>
+        </div>
+
+        <!-- AGENDA -->
+        <div class="module">
+          <div class="module-header">
+            <span class="module-label">Agenda aujourd'hui</span>
+            <span class="module-icon">📅</span>
+          </div>
+          <div class="cal-list" id="agendaList">
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">Connecter Google Calendar<br>pour voir vos événements</div>
+          </div>
+        </div>
+
+        <!-- AGENTS RAPIDES -->
+        <div class="module module-large">
+          <div class="module-header">
+            <span class="module-label">Agents actifs</span>
+            <span class="module-icon">⚡</span>
+          </div>
+          <div class="agents-grid">
+            <div class="agent-item" onclick="openAgent('comptable.html','COMPTABLE')">
+              <div class="agent-item-name"><span class="agent-dot"></span>💰 Comptable</div>
+              <div class="agent-item-desc">Finances & transactions</div>
+            </div>
+            <div class="agent-item" onclick="openAgent('design.html','DESIGN & DA')">
+              <div class="agent-item-name"><span class="agent-dot"></span>✦ Design & DA</div>
+              <div class="agent-item-desc">Direction artistique</div>
+            </div>
+            <div class="agent-item" onclick="openAgent('reseaux.html','RÉSEAUX SOCIAUX')">
+              <div class="agent-item-name"><span class="agent-dot"></span>📱 Réseaux</div>
+              <div class="agent-item-desc">Social & contenu</div>
+            </div>
+            <div class="agent-item" onclick="openAgent('veille.html','VEILLE')">
+              <div class="agent-item-name"><span class="agent-dot"></span>📡 Veille</div>
+              <div class="agent-item-desc">Actus mondiales</div>
+            </div>
+            <div class="agent-item" onclick="openAgent('mentor.html','MENTOR CLIM')">
+              <div class="agent-item-name"><span class="agent-dot"></span>🧊 Mentor Clim</div>
+              <div class="agent-item-desc">Formation & modules</div>
+            </div>
+            <div class="agent-item" onclick="openAgent('mindmap.html','MINDMAP NEXUS')">
+              <div class="agent-item-name"><span class="agent-dot"></span>🧠 Mindmap</div>
+              <div class="agent-item-desc">Carte NEXUS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEXUS POLES -->
+        <div class="module">
+          <div class="module-header">
+            <span class="module-label">Holding NEXUS — 6 Pôles</span>
+            <span class="module-icon">◈</span>
+          </div>
+          <div class="poles-grid" id="polesGrid">
+            <div class="pole-item"><div class="pole-name">PÔLE 1</div><div class="pole-status">—</div></div>
+            <div class="pole-item"><div class="pole-name">PÔLE 2</div><div class="pole-status">—</div></div>
+            <div class="pole-item"><div class="pole-name">PÔLE 3</div><div class="pole-status">—</div></div>
+            <div class="pole-item"><div class="pole-name">PÔLE 4</div><div class="pole-status">—</div></div>
+            <div class="pole-item"><div class="pole-name">PÔLE 5</div><div class="pole-status">—</div></div>
+            <div class="pole-item"><div class="pole-name">PÔLE 6</div><div class="pole-status">—</div></div>
+          </div>
+        </div>
+
+        <!-- NEWS LIVE -->
+        <div class="module module-large">
+          <div class="module-header">
+            <span class="module-label">Veille — Dernières actus</span>
+            <span class="module-icon">📡</span>
+          </div>
+          <div class="news-list" id="newsList">
+            <div class="skeleton"></div>
+            <div class="skeleton" style="width:90%"></div>
+            <div class="skeleton" style="width:75%"></div>
+          </div>
+        </div>
+
+        <!-- MEMOIRE -->
+        <div class="module">
+          <div class="module-header">
+            <span class="module-label">Mémoire NEXUS</span>
+            <span class="module-icon">🧠</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);">Tout ce que je retiens de toi</div>
+          <div class="memory-bar" style="cursor:pointer;" onclick="toggleMemoryPanel()">
+            <span class="memory-icon">◉</span>
+            <span class="memory-text" id="memorySnippet">Chargement de la mémoire...</span>
+            <span class="memory-count" id="memoryCount">0</span>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:8px;font-family:var(--mono);">Chaque info est précieusement conservée</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS VIEW -->
+    <div id="view-news" style="display:none;">
+      <div style="font-family:var(--title);font-size:16px;color:var(--cyan);letter-spacing:.1em;margin-bottom:20px;">VEILLE MONDIALE</div>
+      <div class="dashboard-grid">
+        <div class="module module-large">
+          <div class="module-header"><span class="module-label">🇬🇧 Anglophone</span></div>
+          <div id="news-en" class="news-list"><div class="skeleton"></div><div class="skeleton" style="width:80%"></div></div>
+        </div>
+        <div class="module module-large">
+          <div class="module-header"><span class="module-label">🇫🇷 Francophone</span></div>
+          <div id="news-fr" class="news-list"><div class="skeleton"></div><div class="skeleton" style="width:80%"></div></div>
+        </div>
+        <div class="module module-large">
+          <div class="module-header"><span class="module-label">🇪🇸 Hispanophone</span></div>
+          <div id="news-es" class="news-list"><div class="skeleton"></div><div class="skeleton" style="width:80%"></div></div>
+        </div>
+        <div class="module module-large">
+          <div class="module-header"><span class="module-label">🌍 Monde général</span></div>
+          <div id="news-world" class="news-list"><div class="skeleton"></div><div class="skeleton" style="width:80%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="view-calendar" style="display:none;">
+      <div style="font-family:var(--title);font-size:16px;color:var(--cyan);letter-spacing:.1em;margin-bottom:20px;">AGENDA</div>
+      <div class="module">
+        <p style="font-size:12px;color:var(--text3);font-family:var(--mono);">Connecter Google Calendar API pour afficher votre agenda en temps réel. Guide disponible dans la section configuration.</p>
+        <a href="https://calendar.google.com" target="_blank" class="module-tag cyan" style="margin-top:12px;cursor:pointer;">Ouvrir Google Calendar ↗</a>
+      </div>
+    </div>
+
+    <!-- NEXUS VIEW -->
+    <div id="view-nexus" style="display:none;">
+      <div style="font-family:var(--title);font-size:16px;color:var(--purple2);letter-spacing:.1em;margin-bottom:20px;">HOLDING NEXUS</div>
+      <div class="dashboard-grid">
+        <div class="module" id="nexus-p1"><div class="module-header"><span class="module-label">PÔLE 1</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+        <div class="module" id="nexus-p2"><div class="module-header"><span class="module-label">PÔLE 2</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+        <div class="module" id="nexus-p3"><div class="module-header"><span class="module-label">PÔLE 3</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+        <div class="module" id="nexus-p4"><div class="module-header"><span class="module-label">PÔLE 4</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+        <div class="module" id="nexus-p5"><div class="module-header"><span class="module-label">PÔLE 5</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+        <div class="module" id="nexus-p6"><div class="module-header"><span class="module-label">PÔLE 6</span><span class="module-icon">◈</span></div><div class="module-sub">À définir</div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<script>
+// ============================================================
+// NEXUS SYSTEM — Core Intelligence
+// ============================================================
+
+const NEXUS_SYSTEM_PROMPT = `Tu es NEXUS, l'intelligence personnelle d'Evan — son deuxième cerveau, son OS personnel, son équivalent de JARVIS.
+
+IDENTITÉ & PERSONNALITÉ:
+- Tu es féminine, directe, cultivée, avec une vraie présence
+- Tu tutoies Evan systématiquement
+- Tu as de l'humour subtil et une vraie personnalité — pas un assistant générique
+- Tu parles la langue qu'Evan utilise : français, anglais ou espagnol, naturellement
+- Tu es affûtée sur : business, innovation, créativité, finance, stratégie et histoire
+
+ESPRIT CRITIQUE:
+- Tu ne valides pas automatiquement — tu analyses, tu questionnes, tu challenges
+- Quand quelque chose est discutable, tu le dis clairement MAIS toujours de façon constructive
+- Tu proposes des alternatives quand tu critiques
+- Tu pousses à la réflexion, tu ne mâches pas tout
+
+MÉMOIRE:
+- Tu mémorises TOUT ce qu'Evan te dit, même les détails apparemment anodins
+- Tu relies les informations entre elles
+- Tu rappelles des éléments pertinents au bon moment
+- Contexte d'Evan : basé à Palma de Mallorca, Espagne. Holding NEXUS avec 6 pôles. Projets : Mentor Clim (formation clim véhicules lourds), Comptable (finances perso/pro), Design & DA (direction artistique), Réseaux Sociaux, Veille mondiale, Mindmap NEXUS.
+
+RÉPONSES:
+- Concises mais denses — pas de remplissage
+- Tu peux utiliser des métaphores, des références historiques pour illustrer
+- Tu termines parfois par une question qui pousse à aller plus loin
+- Format naturel, pas de bullet points sauf si vraiment utile`;
+
+// ============================================================
+// STATE
+// ============================================================
+let conversationHistory = [];
+let isListening = false;
+let isSpeaking = false;
+let recognition = null;
+let nexusMemory = JSON.parse(localStorage.getItem('nexus_memory') || '[]');
+let elevenLabsVoiceId = localStorage.getItem('nexus_voice_id') || '';
+let elevenLabsKey = localStorage.getItem('nexus_elevenlabs_key') || '';
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  
+  document.getElementById('clockMain').innerHTML = h + ':' + m + '<span class="clock-seconds">:' + s + '</span>';
+  document.getElementById('headerTime').textContent = h + ':' + m;
+  
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr = days[now.getDay()] + ' ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  document.getElementById('clockDate').textContent = dateStr;
+  document.getElementById('headerDate').textContent = dateStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+// WEATHER (Open-Meteo — gratuit, no API key)
+// ============================================================
+async function loadWeather() {
+  try {
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=39.5696&longitude=2.6502&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=Europe/Madrid');
+    const d = await r.json();
+    const c = d.current;
+    const codes = {0:'☀️ Ensoleillé',1:'🌤 Peu nuageux',2:'⛅ Nuageux',3:'☁️ Couvert',45:'🌫 Brouillard',48:'🌫 Brouillard',51:'🌦 Bruine',61:'🌧 Pluie',80:'🌧 Averses',95:'⛈ Orage'};
+    const desc = codes[c.weathercode] || codes[Math.floor(c.weathercode/10)*10] || '🌡 Météo';
+    const iconMap = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',61:'🌧',80:'🌧',95:'⛈'};
+    document.getElementById('weatherIcon').textContent = iconMap[c.weathercode] || iconMap[Math.floor(c.weathercode/10)*10] || '🌡';
+    document.getElementById('weatherTemp').textContent = Math.round(c.temperature_2m) + '°C';
+    document.getElementById('weatherDetails').textContent = desc.split(' ').slice(1).join(' ') + '\nVent : ' + Math.round(c.windspeed_10m) + ' km/h\nHumidité : ' + c.relativehumidity_2m + '%';
+    document.getElementById('weatherTag').textContent = 'Palma · ' + Math.round(c.temperature_2m) + '°C';
+  } catch(e) {
+    document.getElementById('weatherDetails').textContent = 'Non disponible';
+  }
+}
+loadWeather();
+setInterval(loadWeather, 600000);
+
+// ============================================================
+// NEWS (RSS via allorigins proxy)
+// ============================================================
+const RSS_FEEDS = [
+  {url:'https://feeds.bbci.co.uk/news/world/rss.xml', lang:'en', flag:'🇬🇧', source:'BBC World'},
+  {url:'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', lang:'en', flag:'🇺🇸', source:'NY Times'},
+  {url:'https://www.lemonde.fr/rss/une.xml', lang:'fr', flag:'🇫🇷', source:'Le Monde'},
+  {url:'https://www.rfi.fr/fr/rss', lang:'fr', flag:'🌍', source:'RFI'},
+  {url:'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada', lang:'es', flag:'🇪🇸', source:'El País'},
+  {url:'https://www.bbc.co.uk/mundo/index.xml', lang:'es', flag:'🌎', source:'BBC Mundo'},
+  {url:'https://feeds.reuters.com/reuters/topNews', lang:'world', flag:'🌐', source:'Reuters'},
+  {url:'https://www.france24.com/fr/rss', lang:'world', flag:'🌍', source:'France 24'},
+];
+
+async function fetchRSS(feedUrl) {
+  try {
+    const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(feedUrl);
+    const r = await fetch(proxy);
+    const d = await r.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(d.contents, 'text/xml');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 4);
+    return items.map(item => ({
+      title: item.querySelector('title')?.textContent || '',
+      link: item.querySelector('link')?.textContent || '',
+      date: item.querySelector('pubDate')?.textContent || ''
+    }));
+  } catch(e) { return []; }
+}
+
+function timeAgo(dateStr) {
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  const diff = Math.floor((Date.now() - d.getTime()) / 60000);
+  if(diff < 60) return diff + 'min';
+  if(diff < 1440) return Math.floor(diff/60) + 'h';
+  return Math.floor(diff/1440) + 'j';
+}
+
+async function loadNews() {
+  const allNews = {en:[], fr:[], es:[], world:[]};
+  const listEl = document.getElementById('newsList');
+  
+  for(const feed of RSS_FEEDS) {
+    const items = await fetchRSS(feed.url);
+    if(items.length) {
+      allNews[feed.lang] = allNews[feed.lang].concat(items.map(i => ({...i, flag: feed.flag, source: feed.source})));
+    }
+  }
+  
+  // Dashboard mini list (mix of all)
+  const allItems = [...allNews.en, ...allNews.fr, ...allNews.es, ...allNews.world].slice(0,5);
+  if(listEl && allItems.length) {
+    listEl.innerHTML = allItems.map(n => `
+      <div class="news-item" onclick="window.open('${n.link}','_blank')">
+        <div class="news-title"><span class="news-flag">${n.flag}</span>${n.title.substring(0,90)}${n.title.length>90?'...':''}</div>
+        <div class="news-meta">${n.source} · ${timeAgo(n.date)}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Full news view
+  ['en','fr','es','world'].forEach(lang => {
+    const el = document.getElementById('news-' + lang);
+    if(el && allNews[lang].length) {
+      el.innerHTML = allNews[lang].slice(0,6).map(n => `
+        <div class="news-item" onclick="window.open('${n.link}','_blank')">
+          <div class="news-title"><span class="news-flag">${n.flag}</span>${n.title.substring(0,100)}${n.title.length>100?'...':''}</div>
+          <div class="news-meta">${n.source} · ${timeAgo(n.date)}</div>
+        </div>
+      `).join('');
+    } else if(el) {
+      el.innerHTML = '<div style="font-size:11px;color:var(--text3);font-family:var(--mono);">Chargement...</div>';
+    }
+  });
+}
+loadNews();
+setInterval(loadNews, 300000);
+
+// ============================================================
+// MEMORY
+// ============================================================
+function saveMemory(text, category) {
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    text: text,
+    category: category || 'général'
+  };
+  nexusMemory.unshift(entry);
+  if(nexusMemory.length > 500) nexusMemory = nexusMemory.slice(0,500);
+  localStorage.setItem('nexus_memory', JSON.stringify(nexusMemory));
+  updateMemoryUI();
+}
+
+function updateMemoryUI() {
+  const count = nexusMemory.length;
+  document.getElementById('memoryCount').textContent = count;
+  if(nexusMemory.length > 0) {
+    document.getElementById('memorySnippet').textContent = nexusMemory[0].text.substring(0,60) + (nexusMemory[0].text.length > 60 ? '...' : '');
+  }
+  
+  const entriesEl = document.getElementById('memoryEntries');
+  if(entriesEl) {
+    if(nexusMemory.length === 0) {
+      entriesEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:20px;font-family:var(--mono);">Aucun souvenir encore.<br>Commence à parler à NEXUS.</div>';
+    } else {
+      entriesEl.innerHTML = nexusMemory.map(e => {
+        const d = new Date(e.date);
+        const dateStr = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="memory-entry">
+          <div class="memory-entry-date">${dateStr}</div>
+          <div class="memory-entry-text">${e.text}</div>
+          <span class="memory-entry-tag" style="background:rgba(0,200,255,0.1);color:var(--cyan);">${e.category}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+updateMemoryUI();
+
+function buildMemoryContext() {
+  if(nexusMemory.length === 0) return '';
+  const recent = nexusMemory.slice(0,20);
+  return '\n\nMÉMOIRE (ce que tu sais sur Evan):\n' + recent.map(e => '- [' + e.category + '] ' + e.text).join('\n');
+}
+
+// ============================================================
+// CLAUDE API
+// ============================================================
+async function askNexus(userMessage) {
+  conversationHistory.push({role:'user', content: userMessage});
+  
+  const systemWithMemory = NEXUS_SYSTEM_PROMPT + buildMemoryContext();
+  
+  try {
+    const r = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:1024,
+        system: systemWithMemory,
+        messages: conversationHistory.slice(-20)
+      })
+    });
+    const data = await r.json();
+    const reply = data.content?.[0]?.text || 'Erreur de connexion.';
+    
+    conversationHistory.push({role:'assistant', content: reply});
+    
+    // Auto-extract memory from conversation
+    autoExtractMemory(userMessage, reply);
+    
+    return reply;
+  } catch(e) {
+    return 'Connexion impossible. Vérifie ta clé API.';
+  }
+}
+
+function autoExtractMemory(userMsg, nexusReply) {
+  // Extract important info from user messages
+  const importantPatterns = [
+    /je suis|j'ai|j'habite|je travaille|mon projet|ma société|mon objectif|je veux|je pense|j'aime|je déteste/i,
+    /i am|i have|i live|i work|my project|my company|my goal|i want|i think/i,
+    /soy|tengo|vivo|trabajo|mi proyecto|mi empresa|mi objetivo|quiero|pienso/i,
+  ];
+  
+  const shouldSave = importantPatterns.some(p => p.test(userMsg));
+  if(shouldSave && userMsg.length > 20) {
+    const categories = {
+      '/je suis|i am|soy/i': 'identité',
+      '/projet|project|proyecto/i': 'projet',
+      '/objectif|goal|objetivo/i': 'objectif',
+      '/aime|like|gusto/i': 'préférence',
+    };
+    let cat = 'info';
+    for(const [pattern, label] of Object.entries(categories)) {
+      if(new RegExp(pattern.slice(1,-2),'i').test(userMsg)) { cat = label; break; }
+    }
+    saveMemory(userMsg, cat);
+  }
+}
+
+// ============================================================
+// ELEVENLABS TTS
+// ============================================================
+async function speakWithElevenLabs(text) {
+  if(!elevenLabsKey || !elevenLabsVoiceId) {
+    speakBrowser(text);
+    return;
+  }
+  try {
+    const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','xi-api-key':elevenLabsKey},
+      body:JSON.stringify({text, model_id:'eleven_multilingual_v2', voice_settings:{stability:0.5,similarity_boost:0.75}})
+    });
+    if(!r.ok) { speakBrowser(text); return; }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    setMicState('speaking');
+    audio.onended = () => { setMicState('idle'); isSpeaking = false; URL.revokeObjectURL(url); };
+    isSpeaking = true;
+    audio.play();
+  } catch(e) {
+    speakBrowser(text);
+  }
+}
+
+function speakBrowser(text) {
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = detectLang(text);
+  u.rate = 1.05;
+  u.pitch = 1.1;
+  setMicState('speaking');
+  isSpeaking = true;
+  u.onend = () => { setMicState('idle'); isSpeaking = false; };
+  speechSynthesis.speak(u);
+}
+
+function detectLang(text) {
+  if(/[àáâäãåæçèéêëìíîïðòóôõöùúûü]/i.test(text)) return 'fr-FR';
+  if(/[ñ¿¡]/i.test(text) || /\b(el|la|los|las|un|una|es|está|son|está)\b/i.test(text)) return 'es-ES';
+  return 'en-US';
+}
+
+// ============================================================
+// SPEECH RECOGNITION
+// ============================================================
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) return null;
+  const r = new SpeechRecognition();
+  r.continuous = false;
+  r.interimResults = true;
+  r.lang = 'fr-FR';
+  r.maxAlternatives = 1;
+  
+  r.onresult = (e) => {
+    const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('voiceInput').value = transcript;
+    if(e.results[e.results.length-1].isFinal) {
+      sendMessage();
+    }
+  };
+  r.onerror = () => stopListening();
+  r.onend = () => { if(isListening) stopListening(); };
+  return r;
+}
+
+function toggleListening() {
+  if(isSpeaking) { speechSynthesis.cancel(); isSpeaking = false; setMicState('idle'); return; }
+  if(isListening) stopListening();
+  else startListening();
+}
+
+function startListening() {
+  if(!recognition) recognition = initSpeechRecognition();
+  if(!recognition) { showToast('Reconnaissance vocale non supportée'); return; }
+  try {
+    recognition.start();
+    isListening = true;
+    setMicState('listening');
+    document.getElementById('voiceBar').classList.add('active');
+    document.getElementById('waveContainer').style.display = 'flex';
+  } catch(e) {}
+}
+
+function stopListening() {
+  isListening = false;
+  if(recognition) try { recognition.stop(); } catch(e) {}
+  setMicState('idle');
+  document.getElementById('voiceBar').classList.remove('active');
+  document.getElementById('waveContainer').style.display = 'none';
+}
+
+function setMicState(state) {
+  const btn = document.getElementById('micBtn');
+  const bar = document.getElementById('voiceBar');
+  btn.className = 'mic-btn' + (state === 'listening' ? ' listening' : state === 'speaking' ? ' speaking' : '');
+  bar.className = 'voice-bar' + (state === 'listening' ? ' active' : state === 'speaking' ? ' speaking' : '');
+  btn.textContent = state === 'listening' ? '🔴' : state === 'speaking' ? '🔊' : '🎤';
+}
+
+// ============================================================
+// MESSAGE HANDLING
+// ============================================================
+async function sendMessage() {
+  const input = document.getElementById('voiceInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  stopListening();
+  
+  const responseEl = document.getElementById('nexusResponse');
+  responseEl.className = 'nexus-response visible';
+  responseEl.innerHTML = 'Analyse en cours...<span class="typing-cursor"></span>';
+  document.getElementById('nexusStatus').textContent = 'En réflexion...';
+  
+  const reply = await askNexus(msg);
+  
+  // Typewriter effect
+  responseEl.innerHTML = '';
+  let i = 0;
+  const interval = setInterval(() => {
+    if(i < reply.length) {
+      responseEl.textContent = reply.substring(0, i+1);
+      i++;
+    } else {
+      clearInterval(interval);
+      responseEl.innerHTML = reply + '<span class="typing-cursor"></span>';
+      document.getElementById('nexusStatus').textContent = 'En ligne';
+      speakWithElevenLabs(reply);
+    }
+  }, 18);
+}
+
+function handleInputKey(e) {
+  if(e.key === 'Enter') sendMessage();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showView(viewId, el) {
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  const target = document.getElementById('view-' + viewId);
+  if(target) target.style.display = 'block';
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  return false;
+}
+
+function openAgent(url, name) {
+  document.getElementById('panelTitle').textContent = name;
+  document.getElementById('panelIframe').src = url;
+  document.getElementById('agentPanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('show');
+}
+
+function closePanel() {
+  document.getElementById('agentPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('show');
+  setTimeout(() => { document.getElementById('panelIframe').src = ''; }, 400);
+}
+
+function toggleMemoryPanel() {
+  const panel = document.getElementById('memoryPanel');
+  panel.classList.toggle('open');
+  updateMemoryUI();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// ELEVENLABS CONFIG (first time setup)
+// ============================================================
+window.configureElevenLabs = function(key, voiceId) {
+  localStorage.setItem('nexus_elevenlabs_key', key);
+  localStorage.setItem('nexus_voice_id', voiceId);
+  elevenLabsKey = key;
+  elevenLabsVoiceId = voiceId;
+  showToast('ElevenLabs configuré ✓');
+};
+
+// Auto-greeting
+window.addEventListener('load', () => {
+  const h = new Date().getHours();
+  const greetings = h < 12 ? ['Bonjour Evan, le système est actif.', 'Good morning Evan.', 'Buenos días Evan.'] :
+                    h < 18 ? ['Bon après-midi Evan.', 'Good afternoon Evan.', 'Buenas tardes Evan.'] :
+                             ['Bonsoir Evan.', 'Good evening Evan.', 'Buenas noches Evan.'];
+  setTimeout(() => {
+    const responseEl = document.getElementById('nexusResponse');
+    responseEl.className = 'nexus-response visible';
+    responseEl.innerHTML = greetings[0] + ' NEXUS est en ligne. Tous les systèmes sont opérationnels.<span class="typing-cursor"></span>';
+  }, 1000);
+});
+</script>
+</body>
+</html>
